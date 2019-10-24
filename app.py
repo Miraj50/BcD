@@ -69,11 +69,14 @@ def view():
 @app.route('/insert', methods=['POST'])
 def insert():
 	global conn
-	post_data = request.json
-	data = post_data['data']
-	count = post_data['count']
 	import Insert
-	return Insert.Insert(conn, data, count)
+	post_data = request.json
+	if 'sig' in post_data:
+		return Insert.Insert(conn, None, None, post_data['sig'])
+	else:
+		data = post_data['data']
+		count = post_data['count']
+		return Insert.Insert(conn, data, count)
 
 @app.route('/update', methods=['POST'])
 def update():

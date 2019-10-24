@@ -53,8 +53,8 @@ chainname = 'chain1'
 def getApi():
 	return Savoir(rpcuser, rpcpasswd, rpchost, rpcport, chainname)
 
-def publishItem(api, uid, data):
-	d={'json':{'uid':uid, 'data':data}}
+def publishItem(api, uid, query, sig):
+	d = {'json':{'uid':uid, 'query':query, 'sig':sig}}
 	return api.publish('stream1', 'key1', d)
 # print(api.liststreamitems('stream1')[0])
 # print(api.liststreamitems('stream1')[1])

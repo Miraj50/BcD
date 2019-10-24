@@ -17,10 +17,10 @@ def Update(conn, uid, course, newGrade, sig=None):
 			import mc
 			try:
 				api = mc.getApi()
-				txid = mc.publishItem(api, session['username'], sig)
+				txid = mc.publishItem(api, session['username'], session['update'].decode('utf-8'), sig)
 			except:
 				print("MultiChain Error")
-				return "M"
+				return "D"
 			else:
 				cur.execute(stmt, v)
 				conn.commit()

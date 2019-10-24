@@ -345,10 +345,10 @@ class BcD(tk.Tk):
 		gradeList = grades.split('\n')
 		num = 0
 
-		passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
+		# passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
 
-		with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
-			privkey = RSA.importKey(f.read(), passphrase=passPh)
+		# with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
+		# 	privkey = RSA.importKey(f.read(), passphrase=passPh)
 
 		for row in gradeList:
 			temp = row.split()
@@ -373,7 +373,24 @@ class BcD(tk.Tk):
 			self.footer.update_idletasks()
 			response = self.sess.post(url, json=post_data)
 			text = response.text
-			# print(text)
+
+			passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
+
+			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
+				try:
+					privkey = RSA.importKey(f.read(), passphrase=passPh)
+				except:
+					self.footer.config(text='Incorrect Passphrase !', bg='red2', fg='white', relief='raised')
+					return
+
+			digest = SHA256.new()
+			digest.update(text.encode())
+			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
+
+			post_data = {'sig':sig}
+			response = self.sess.post(url, json=post_data)
+			text = response.text
+
 		except (ConnectionError, requests.exceptions.RequestException) as e:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white')
 			return
@@ -383,10 +400,11 @@ class BcD(tk.Tk):
 		elif text == "N":
 			self.footer.config(text='Please Follow the required Format !', bg='red2', fg='white', relief='raised')
 		elif text[0] == "D":
-			self.footer.config(text='Some Grades could not be Submitted !', bg='red2', fg='white', relief='raised')
-			textBox = self.eG.winfo_children()[0].winfo_children()[1]
-			textBox.delete(1.0, float(text[1:])+1.0)
-			textBox.tag_add("error", "1.0", "2.0")
+			self.footer.config(text='Grades could not be Submitted !', bg='red2', fg='white', relief='raised')
+			# self.footer.config(text='Some Grades could not be Submitted !', bg='red2', fg='white', relief='raised')
+			# textBox = self.eG.winfo_children()[0].winfo_children()[1]
+			# textBox.delete(1.0, float(text[1:])+1.0)
+			# textBox.tag_add("error", "1.0", "2.0")
 		elif text == "S":
 			self.footer.config(text='Grades Entered Successfully', bg='black', fg='springGreen', relief='raised')
 			self.eG.winfo_children()[0].winfo_children()[1].delete(1.0, "end")
@@ -427,7 +445,11 @@ class BcD(tk.Tk):
 			passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
 
 			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
-				privkey = RSA.importKey(f.read(), passphrase=passPh)
+				try:
+					privkey = RSA.importKey(f.read(), passphrase=passPh)
+				except:
+					self.footer.config(text='Incorrect Passphrase !', bg='red2', fg='white', relief='raised')
+					return
 
 			digest = SHA256.new()
 			digest.update(text.encode())
