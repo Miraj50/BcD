@@ -22,7 +22,7 @@ def Signup(conn, uid, pwd, pubkey):
 		import mc
 		try:
 			api = mc.getApi()
-			txid = mc.publishItem(api, 'admin', '', sig)
+			txid = mc.publishItem(api, 'admin', 'INSERT', '', sig)
 		except:
 			print("MultiChain Error")
 			return "M"

@@ -15,7 +15,6 @@ def Insert(conn, data, count, sig=None):
 		# query = cur.mogrify(stmt_, v)
 		dt = "||".join([",".join(i) for i in s])
 		session['insert'] = dt
-		print(dt)
 		return dt
 	else:
 		orig = SHA256.new(session['insert'].encode())

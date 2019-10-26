@@ -37,28 +37,6 @@ def login():
 	std = request.form['student']
 	import Login
 	return Login.Login(conn, uid, pwd, std)
-	# cur.execute("SELECT * from icreds WHERE uid=%s", (uid,))
-	# row = cur.fetchall()
-	# if len(row) == 1:
-	# 	salt = row[0][1]
-	# 	phash = row[0][2]
-	# 	calc = hashlib.pbkdf2_hmac('sha256', uid.encode(), pwd.encode(), 100000).hex()
-	# 	if calc == phash:
-	# 		session['logged_in'] = True
-	# 		session['username'] = uid
-	# 		return 'S'
-	# 	else:
-	# 		return "N"
-	# else:
-	# 	return "N"
-
-
-	# elif not session.get('logged_in'):
-	# 	# print("no session")
-	# 	return 'N'
-	# else:
-	# 	# print("invalid password")
-	# 	return "Oohlala"
 
 @app.route('/view', methods=['POST'])
 def view():
@@ -99,5 +77,3 @@ def logout():
 if __name__ == '__main__':
 	app.secret_key = os.urandom(12)
 	app.run(debug=True)
-
-# 0xC9f9c43F742Bc11aD35E2F82B6Eb1Cf08fd0F95E
