@@ -194,7 +194,6 @@ class BcD(tk.Tk):
 			self.footer.update_idletasks()
 			response = self.sess.post(url, data=post_data)
 			text = response.text
-			print(text)
 		except (ConnectionError, requests.exceptions.RequestException) as e:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 			return
@@ -375,7 +374,8 @@ class BcD(tk.Tk):
 			text = response.text
 
 			passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
-
+			if passPh is None:
+				return
 			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
 				try:
 					privkey = RSA.importKey(f.read(), passphrase=passPh)
@@ -423,6 +423,8 @@ class BcD(tk.Tk):
 		item = w.item(w.selection())['values']
 
 		uG = simpledialog.askstring('Update grade', 'Enter New Grade', parent=self, initialvalue=item[3])
+		if uG is None:
+			return
 		# passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
 
 		# with open(os.path.expanduser("~/"+self.uname+".pem"), "r") as f:
@@ -443,7 +445,8 @@ class BcD(tk.Tk):
 			text = response.text
 
 			passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
-
+			if passPh is None:
+				return
 			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
 				try:
 					privkey = RSA.importKey(f.read(), passphrase=passPh)

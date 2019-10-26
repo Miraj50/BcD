@@ -1,0 +1,58 @@
+CREATE OR REPLACE FUNCTION db_check(text, text) -- instr and course
+RETURNS BOOLEAN AS
+$$
+BEGIN
+PERFORM * FROM instr WHERE id=$1 AND course=$2;
+RETURN FOUND;
+END;
+$$
+LANGUAGE plpgsql STRICT;
+
+============================
+
+CREATE OR REPLACE FUNCTION db_insert(text, text[], text[], text[]) -- instr, std, course, grade
+RETURNS BOOLEAN AS
+$$
+DECLARE c text[];
+DECLARE flag BOOLEAN := TRUE;
+DECLARE i text;
+BEGIN
+IF cardinality($2) = cardinality($3) AND cardinality($3) = cardinality($4) THEN
+	c := ARRAY(SELECT course FROM instr WHERE id=$1);
+	FOREACH i in ARRAY $3
+	LOOP
+		IF NOT (i = ANY(c)) THEN
+			flag := FALSE;
+			EXIT;
+		END IF;
+	END LOOP;
+	IF flag THEN
+		INSERT INTO std(uid, course, grade) SELECT * FROM unnest($2, $3, $4);
+	ELSE
+		RETURN FALSE;
+	END IF;
+	RETURN FOUND;
+ELSE
+	RETURN FALSE;
+END IF;
+EXCEPTION WHEN OTHERS THEN
+RETURN FALSE;
+END;
+$$
+LANGUAGE plpgsql STRICT;
+
+============================
+
+CREATE OR REPLACE FUNCTION db_update(text, text, text, text) -- instr, std, course, grade
+RETURNS BOOLEAN AS
+$$
+BEGIN
+IF db_check($1, $3) THEN
+	UPDATE std SET grade=$4 WHERE uid=$2 AND course=$3;
+END IF;
+RETURN FOUND;
+EXCEPTION WHEN OTHERS THEN
+RETURN FALSE;
+END;
+$$
+LANGUAGE plpgsql STRICT;

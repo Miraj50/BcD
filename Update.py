@@ -5,26 +5,30 @@ from Crypto.Hash import SHA256
 
 def Update(conn, uid, course, newGrade, sig=None):
 	cur = conn.cursor()
-	stmt = "UPDATE std SET grade=%s WHERE uid=%s AND course=%s"
-	v = (newGrade, uid, course,)
+	# stmt = "UPDATE std SET grade=%s WHERE uid=%s AND course=%s"
+	# v = (newGrade, uid, course,)
+	data = uid+','+course+','+newGrade
 	if sig is None:
-		query = cur.mogrify(stmt, v)
-		session['update'] = query
-		return query
+		# query = cur.mogrify(stmt, v)
+		session['update'] = data
+		return data
 	else:
-		orig = SHA256.new(session['update'])
+		orig = SHA256.new(session['update'].encode())
 		if pkcs.new(RSA.importKey(session['pubkey'])).verify(orig, bytes.fromhex(sig)):
 			import mc
 			try:
 				api = mc.getApi()
-				txid = mc.publishItem(api, session['username'], session['update'].decode('utf-8'), sig)
+				txid = mc.publishItem(api, session['username'], 'UPDATE', session['update'], sig)
 			except:
 				print("MultiChain Error")
 				return "D"
 			else:
-				cur.execute(stmt, v)
+				# cur.execute(stmt, v)
+				cur.callproc('db_update', (session['username'], uid, course, newGrade,))
 				conn.commit()
 				session.pop('update', None)
+				if not cur.fetchone()[0]:
+					return "D"
 				return "S"
 		else:
 			return "D"

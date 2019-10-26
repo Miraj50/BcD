@@ -53,13 +53,8 @@ chainname = 'chain1'
 def getApi():
 	return Savoir(rpcuser, rpcpasswd, rpchost, rpcport, chainname)
 
-def publishItem(api, uid, query, sig):
-	d = {'json':{'uid':uid, 'query':query, 'sig':sig}}
+def publishItem(api, id, type, data, sig):
+	d = {'json':{'id':id, 'type':type, 'data':data, 'sig':sig}}
 	return api.publish('stream1', 'key1', d)
 # print(api.liststreamitems('stream1')[0])
 # print(api.liststreamitems('stream1')[1])
-
-# She adores fantasy and fiction,
-# Percy and Harry is her addiction,
-# Affable, Caring and Sweet,
-# Heist her pizza and you're dead meat!
