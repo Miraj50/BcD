@@ -1,10 +1,12 @@
 from flask import session
 import psycopg2, hashlib
 
-def Login(conn, uid, pwd, std):
+def Login(uid, pwd, std):
+	conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
 	cur = conn.cursor()
 	cur.execute("SELECT * from icreds WHERE uid=%s", (uid,))
 	row = cur.fetchall()
+	conn.close()
 	if len(row) == 1:
 		salt = row[0][1]
 		phash = row[0][2]

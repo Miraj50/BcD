@@ -4,8 +4,8 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
 
-def Insert(conn, data, count, sig=None):
-	cur = conn.cursor()
+def Insert(data, count, sig=None):
+	# cur = conn.cursor()
 	# stmt = "INSERT INTO std (uid, course, grade) VALUES %s"
 	if sig is None:
 		v = [tuple(i.values()) for i in data]
@@ -22,20 +22,18 @@ def Insert(conn, data, count, sig=None):
 			import mc
 			try:
 				api = mc.getApi()
-				txid = mc.publishItem(api, session['username'], 'INSERT', session['insert'], sig)
+				txid = mc.publishItem(api, session['username'], 'gradeinsert', session['insert'], sig)
 			except:
 				print("MultiChain Error")
 				return "D"
 			else:
-				# psycopg2.extras.execute_values(cur, stmt, v)
-				# cur.execute(session['insert'].decode('utf-8'))
-				t = session['insert'].split('||')
-				std, courses, grades = [i.split(',') for i in t]
-				cur.callproc('db_insert', (session['username'], std, courses, grades,))
-				conn.commit()
+				# t = session['insert'].split('||')
+				# std, courses, grades = [i.split(',') for i in t]
+				# cur.callproc('gradeInsert', (session['username'], std, courses, grades,))
+				# conn.commit()
 				session.pop('insert', None)
-				if not cur.fetchone()[0]:
-					return "D"
+				# if not cur.fetchone()[0]:
+				# 	return "D"
 				return "S"
 		else:
 			return "D"

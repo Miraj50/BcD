@@ -3,8 +3,8 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
 
-def Update(conn, uid, course, newGrade, sig=None):
-	cur = conn.cursor()
+def Update(uid, course, newGrade, sig=None):
+	# cur = conn.cursor()
 	# stmt = "UPDATE std SET grade=%s WHERE uid=%s AND course=%s"
 	# v = (newGrade, uid, course,)
 	data = uid+','+course+','+newGrade
@@ -18,17 +18,16 @@ def Update(conn, uid, course, newGrade, sig=None):
 			import mc
 			try:
 				api = mc.getApi()
-				txid = mc.publishItem(api, session['username'], 'UPDATE', session['update'], sig)
+				txid = mc.publishItem(api, session['username'], 'gradeupdate', session['update'], sig)
 			except:
 				print("MultiChain Error")
 				return "D"
 			else:
-				# cur.execute(stmt, v)
-				cur.callproc('db_update', (session['username'], uid, course, newGrade,))
-				conn.commit()
+				# cur.callproc('gradeUpdate', (session['username'], uid, course, newGrade,))
+				# conn.commit()
 				session.pop('update', None)
-				if not cur.fetchone()[0]:
-					return "D"
+				# if not cur.fetchone()[0]:
+				# 	return "D"
 				return "S"
 		else:
 			return "D"
