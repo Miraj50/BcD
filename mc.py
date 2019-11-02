@@ -54,8 +54,8 @@ stream = 'stream1'
 def getApi():
 	return Savoir(rpcuser, rpcpasswd, rpchost, rpcport, chainname)
 
-def publishItem(api, id, type, data, sig):
-	d = {'json':{'id':id, 'type':type, 'data':data, 'sig':sig}}
+def publishItem(api, id, type, data, sig, ping):
+	d = {'json':{'id':id, 'type':type, 'data':data, 'sig':sig, 'ping':ping}}
 	return api.publish(stream, 'key1', d)
 
 def streamInfo(api):
@@ -64,6 +64,9 @@ def streamInfo(api):
 
 def getItems(api, count):
 	return api.liststreamitems(stream, False, count)
+
+def getItemByTxid(api, txid):
+	return api.getstreamitem(stream, txid)
 
 # api = getApi()
 # print(getItems(api, 2))

@@ -3,8 +3,10 @@ from flask import session
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
+import requests, time
 
-def Insert(data, count, sig=None):
+def Insert(data, count, ping='0', sig=None):
+	# time.sleep(10)
 	# cur = conn.cursor()
 	# stmt = "INSERT INTO std (uid, course, grade) VALUES %s"
 	if sig is None:
@@ -22,7 +24,7 @@ def Insert(data, count, sig=None):
 			import mc
 			try:
 				api = mc.getApi()
-				txid = mc.publishItem(api, session['username'], 'gradeinsert', session['insert'], sig)
+				txid = mc.publishItem(api, session['username'], 'gradeinsert', session['insert'], sig, ping)
 			except:
 				print("MultiChain Error")
 				return "D"
@@ -32,8 +34,14 @@ def Insert(data, count, sig=None):
 				# cur.callproc('gradeInsert', (session['username'], std, courses, grades,))
 				# conn.commit()
 				session.pop('insert', None)
-				# if not cur.fetchone()[0]:
-				# 	return "D"
+				if ping == '1':
+					url = 'http://localhost:5001/ping'
+					try:
+						response = requests.post(url, data={'txid':txid})
+					except (ConnectionError, requests.exceptions.RequestException) as e:
+						return 'D'
+					else:
+						return response.text
 				return "S"
 		else:
 			return "D"

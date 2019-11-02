@@ -11,28 +11,14 @@ app = Flask(__name__)
 
 @app.route('/signup', methods=['POST'])
 def signup():
-	# global conn
-	# getDBConn()
 	uid = request.form['uid']
 	pwd = request.form['pass']
 	pubkey = request.form['pubkey']
 	import Signup
 	return Signup.Signup(uid, pwd, pubkey) # Incomplete
 
-	# cur.execute("SELECT * from icreds WHERE uid=%s", (uid,))
-	# if cur.fetchone():
-	# 	return "M"
-	# else:
-	# 	salt = secrets.token_hex(32)
-	# 	phash = hashlib.pbkdf2_hmac('sha256', uid.encode(), pwd.encode(), 100000).hex()
-	# 	cur.execute("INSERT INTO icreds (uid, salt, hash) VALUES (%s, %s, %s)", (uid, salt, phash,))
-	# 	conn.commit()
-	# 	return "S"
-
 @app.route('/login', methods=['POST'])
 def login():
-	# global conn
-	# getDBConn()
 	uid = request.form['uid']
 	pwd = request.form['pass']
 	std = request.form['student']
@@ -41,17 +27,15 @@ def login():
 
 @app.route('/view', methods=['POST'])
 def view():
-	# global conn
 	import View
 	return View.View()
 
 @app.route('/insert', methods=['POST'])
 def insert():
-	# global conn
 	import Insert
 	post_data = request.json
 	if 'sig' in post_data:
-		return Insert.Insert(None, None, post_data['sig'])
+		return Insert.Insert(None, None, post_data['ping'], post_data['sig'])
 	else:
 		data = post_data['data']
 		count = post_data['count']
@@ -59,7 +43,6 @@ def insert():
 
 @app.route('/update', methods=['POST'])
 def update():
-	# global conn
 	uid = request.form['uid']
 	course = request.form['course']
 	newGrade = request.form['grade']
@@ -71,7 +54,6 @@ def update():
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
-	# global conn
 	import Logout
 	return Logout.Logout()
 

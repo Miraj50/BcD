@@ -28,7 +28,7 @@ class BcD(tk.Tk):
 
 	def Start(self):
 		
-		self.title("Welcome to BcD")
+		self.title("BcD")
 		self.grid_columnconfigure(0, weight=1)
 		self.grid_columnconfigure(1, weight=1)
 
@@ -264,8 +264,11 @@ class BcD(tk.Tk):
 			enterGrades.pack(expand=True, fill="both")
 			self.eG.winfo_children()[0].winfo_children()[1].tag_configure("error", background="gray80", foreground="red")
 
-			enterGBut = tk.Button(self.eG, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen' ,activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
-			enterGBut.pack()
+			enterGBut = tk.Button(self.eG, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
+			enterGBut.pack(side='left', expand=True, fill='x')
+			# enterGBut.grid(row=5, column=0)
+			enterImmBut = tk.Button(self.eG, text='Hurry Up!', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c'), '1'))
+			enterImmBut.pack(side='left', expand=True, fill='x')
 			self.eG.grid(row=4, column=0, columnspan=2, pady=(1,3), sticky="ns")
 		else:
 			self.eG.grid(row=4, column=0, columnspan=2, pady=(1,3), sticky="ns")
@@ -344,7 +347,7 @@ class BcD(tk.Tk):
 			self.footer.config(text='Grades Retrieved Successfully', bg='black', fg='springGreen', relief='raised')
 			self.vG.grid(row=4, column=0, columnspan=2, pady=(1,7), sticky="ns")
 
-	def submitG(self, grades):
+	def submitG(self, grades, ping='0'):
 		
 		post_data = {'data':[]}
 		gradeList = grades.split('\n')
@@ -371,15 +374,17 @@ class BcD(tk.Tk):
 				num = num+1
 
 		post_data['count'] = num
+		# post_data['ping'] = ping
 
 		url = 'http://localhost:5000/insert'
 		try:
 			self.footer.config(text='Submitting Grades...', bg='black', fg='springGreen', relief='raised')
 			self.footer.update_idletasks()
 			response = self.sess.post(url, json=post_data)
+			# app.update_idletasks()
 			text = response.text
 
-			passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
+			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
 			if passPh is None:
 				return
 			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
@@ -393,7 +398,7 @@ class BcD(tk.Tk):
 			digest.update(text.encode())
 			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
 
-			post_data = {'sig':sig}
+			post_data = {'sig':sig, 'ping':ping}
 			response = self.sess.post(url, json=post_data)
 			text = response.text
 
@@ -422,6 +427,11 @@ class BcD(tk.Tk):
 				# refreshG.image = ref
 				# refreshG.grid(row=0, column=1)
 			# self.reload_button = 1
+		elif text == "PING":
+			self.footer.config(text='SUCCESS', bg='black', fg='springGreen', relief='raised')
+			self.eG.winfo_children()[0].winfo_children()[1].delete(1.0, "end")
+			self.footer.update_idletasks()
+			msgbox.showinfo(":)", "SUCCESS!")
 
 	def updateG(self, event):
 		w = event.widget
@@ -450,7 +460,7 @@ class BcD(tk.Tk):
 			response = self.sess.post(url, data=post_data)
 			text = response.text
 
-			passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
+			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
 			if passPh is None:
 				return
 			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
@@ -476,7 +486,7 @@ class BcD(tk.Tk):
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 		elif text == "S":
 			self.footer.config(text='Updated Grade Sent', bg='black', fg='springGreen', relief='raised')
-			self.vG.winfo_children()[0].item(idx, values=(item[0], item[1], item[2], uG))
+			self.vG.winfo_children()[0].item(idx, values=(item[0], item[1], item[2], item[3]+'->'+uG))
 		# elif text == "UFO":
 		# 	self.footer.config(text='!!!  BREACH DETECTED  !!!', bg='gold', fg='red3', borderwidth=2, relief='sunken')
 
