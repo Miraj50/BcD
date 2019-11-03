@@ -12,6 +12,7 @@ import requests, os, hashlib
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
+from flask import json
 
 class BcD(tk.Tk):
 	def __init__(self):
@@ -34,7 +35,7 @@ class BcD(tk.Tk):
 
 		login = tk.Frame(self)
 		login.grid(row=1, column=0, columnspan=2, pady=(5,5))
-		ttk.Separator(self, orient="horizontal").grid(row=2, column=0, columnspan=2, sticky='nsew')
+		# ttk.Separator(self, orient="horizontal").grid(row=2, column=0, columnspan=2, sticky='nsew')
 		signup = tk.Frame(self)
 		signup.grid(row=3, column=0, columnspan=2, pady=(5,5))
 
@@ -62,42 +63,42 @@ class BcD(tk.Tk):
 		loginButton.bind('<Return>', lambda e: self.CheckLogin(nameBox.get(), pwordBox.get(), stud.get()))
 
 		#Sign Up
-		signUpTextF = tk.Frame(signup)
-		signUpText = tk.Label(signUpTextF, text='Sign Up', font='Fixedsys 16 bold', fg='brown')
-		instr_only = tk.Label(signUpTextF, text='(For Instructors only)', font='Verdana 8 italic', fg='gray25')
-		signUpText.grid(row=0, column=0)
-		instr_only.grid(row=1, column=0)
-		signUpTextF.grid(row=0, column=0, columnspan=2, pady=(10,10))
+		# signUpTextF = tk.Frame(signup)
+		# signUpText = tk.Label(signUpTextF, text='Sign Up', font='Fixedsys 16 bold', fg='brown')
+		# instr_only = tk.Label(signUpTextF, text='(For Instructors only)', font='Verdana 8 italic', fg='gray25')
+		# signUpText.grid(row=0, column=0)
+		# instr_only.grid(row=1, column=0)
+		# signUpTextF.grid(row=0, column=0, columnspan=2, pady=(10,10))
 
-		SuName = tk.Label(signup, text='Choose Username', font='Verdana 11')
-		SuPword = tk.Label(signup, text='Enter Password', font='Verdana 11')
-		SuName.grid(row=1, column=0, padx=(30,5), pady=(5,1), sticky="e")
-		SuPword.grid(row=2, column=0, padx=(30,5), pady=(1,5), sticky="e")
+		# SuName = tk.Label(signup, text='Choose Username', font='Verdana 11')
+		# SuPword = tk.Label(signup, text='Enter Password', font='Verdana 11')
+		# SuName.grid(row=1, column=0, padx=(30,5), pady=(5,1), sticky="e")
+		# SuPword.grid(row=2, column=0, padx=(30,5), pady=(1,5), sticky="e")
 
-		SuNameBox = tk.Entry(signup)
-		SuPwordBox = tk.Entry(signup, show='*')
-		SuNameBox.grid(row=1, column=1, padx=(0,30), pady=(5,1), sticky="w")
-		SuPwordBox.grid(row=2, column=1, padx=(0,30), pady=(1,5), sticky="w")
+		# SuNameBox = tk.Entry(signup)
+		# SuPwordBox = tk.Entry(signup, show='*')
+		# SuNameBox.grid(row=1, column=1, padx=(0,30), pady=(5,1), sticky="w")
+		# SuPwordBox.grid(row=2, column=1, padx=(0,30), pady=(1,5), sticky="w")
 
-		SuPP = tk.Label(signup, text='Enter PassPhrase', font='Verdana 11')
-		SuPP.grid(row=3, column=0, padx=(30,5), pady=(5,5), sticky="e")
+		# SuPP = tk.Label(signup, text='Enter PassPhrase', font='Verdana 11')
+		# SuPP.grid(row=3, column=0, padx=(30,5), pady=(5,5), sticky="e")
 
-		PPframe = tk.Frame(signup)
+		# PPframe = tk.Frame(signup)
 
-		passPh = tk.Entry(PPframe, show='*')
-		passPh.grid(row=0, column=0, sticky="w")
+		# passPh = tk.Entry(PPframe, show='*')
+		# passPh.grid(row=0, column=0, sticky="w")
 
-		help_img = "R0lGODlhDAANAPZCACAgICEhISkpKTIyMj09PUJCQkZGRkpKSktLS1dXV1hYWF1dXV5eXmBgYGFhYWRkZHBwcHR0dHZ2dnd3d4SEhIWFhYeHh4qKio+Pj5GRkZKSkpmZmZubm52dnZ+fn6Ojo6ioqK2tra+vr7CwsLa2tre3t7y8vMPDw8jIyMvLy83NzdLS0tXV1dfX19jY2NnZ2eHh4eTk5OXl5enp6e7u7vHx8fLy8vPz8/X19fb29vf39/j4+Pn5+fr6+vv7+/z8/P39/f7+/v///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAAAAAAAIf8LSW1hZ2VNYWdpY2sOZ2FtbWE9MC40NTQ1NDUALAAAAAAMAA0AAAeNgDg5PTIhFhYhMjw5jDkkDRIdHRMNJDo4OyILKjEgHispCyM7LQstMAQDBgImpS0XGUIlCC84BQ5CGhcNKEI8N0EkABhCKA0JLUJBQicBEDZCLQq8ykIUBzVCxQ0XGtUkH0DaGRcuCyzaFQ8+QiymOyMLKUA0Mz8pDKM5Oo8RGxwRKjXKwaPQoUSLcgQCADs="
-		img = tk.PhotoImage(data=help_img)
-		PPhelp = tk.Button(PPframe, image=img, command=lambda: msgbox.showinfo('Help', 'This PassPhrase will be used for generating your Private Key'))
-		PPhelp.image = img
-		PPhelp.grid(row=0, column=1, sticky="w")
+		# help_img = "R0lGODlhDAANAPZCACAgICEhISkpKTIyMj09PUJCQkZGRkpKSktLS1dXV1hYWF1dXV5eXmBgYGFhYWRkZHBwcHR0dHZ2dnd3d4SEhIWFhYeHh4qKio+Pj5GRkZKSkpmZmZubm52dnZ+fn6Ojo6ioqK2tra+vr7CwsLa2tre3t7y8vMPDw8jIyMvLy83NzdLS0tXV1dfX19jY2NnZ2eHh4eTk5OXl5enp6e7u7vHx8fLy8vPz8/X19fb29vf39/j4+Pn5+fr6+vv7+/z8/P39/f7+/v///wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAAAAAAAIf8LSW1hZ2VNYWdpY2sOZ2FtbWE9MC40NTQ1NDUALAAAAAAMAA0AAAeNgDg5PTIhFhYhMjw5jDkkDRIdHRMNJDo4OyILKjEgHispCyM7LQstMAQDBgImpS0XGUIlCC84BQ5CGhcNKEI8N0EkABhCKA0JLUJBQicBEDZCLQq8ykIUBzVCxQ0XGtUkH0DaGRcuCyzaFQ8+QiymOyMLKUA0Mz8pDKM5Oo8RGxwRKjXKwaPQoUSLcgQCADs="
+		# img = tk.PhotoImage(data=help_img)
+		# PPhelp = tk.Button(PPframe, image=img, command=lambda: msgbox.showinfo('Help', 'This PassPhrase will be used for generating your Private Key'))
+		# PPhelp.image = img
+		# PPhelp.grid(row=0, column=1, sticky="w")
 
-		PPframe.grid(row=3, column=1, padx=(0,30), sticky="w")
+		# PPframe.grid(row=3, column=1, padx=(0,30), sticky="w")
 
-		SignUpButton = tk.Button(signup, text='Sign Up', bg='brown', fg='white', activebackground='brown4', activeforeground='white', command=lambda: self.SignUp(SuNameBox.get(), SuPwordBox.get(), passPh.get()))
-		SignUpButton.grid(row=4, column=0, columnspan=2, pady=(5,10))
-		SignUpButton.bind('<Return>', lambda e: self.SignUp(SuNameBox.get(), SuPwordBox.get(), passPh.get()))
+		# SignUpButton = tk.Button(signup, text='Sign Up', bg='brown', fg='white', activebackground='brown4', activeforeground='white', command=lambda: self.SignUp(SuNameBox.get(), SuPwordBox.get(), passPh.get()))
+		# SignUpButton.grid(row=4, column=0, columnspan=2, pady=(5,10))
+		# SignUpButton.bind('<Return>', lambda e: self.SignUp(SuNameBox.get(), SuPwordBox.get(), passPh.get()))
 
 		#Footer
 		# Footer = tk.Frame(self, bg='black')
@@ -128,13 +129,14 @@ class BcD(tk.Tk):
 		# tk.Label(Footer, text='Contact', font='Verdana 7 underline', bg='black', fg='gray40', bd=0).grid(row=3, column=0)
 		# tk.Label(Footer, text='rishabhstpaul@gmail.com', font='Fixedsys 7 bold', bg='black', fg='gray50', bd=0).grid(row=4, column=0)
 
+		self.geometry("327x216")
 		self.update_idletasks()
 		h = self.winfo_reqheight()
 		hs = self.winfo_screenheight()
 		w = self.winfo_reqwidth()
 		ws = self.winfo_screenwidth()
 		x = (ws/2) - (w/2)
-		self.geometry("+%d+%d" % (x, hs-h*11/10))
+		self.geometry("+%d+%d" % (x, hs-h*2.5))
 
 	def checkEmpty(self, uid, pword, passPh):
 		if len(uid) == 0:
@@ -264,11 +266,16 @@ class BcD(tk.Tk):
 			enterGrades.pack(expand=True, fill="both")
 			self.eG.winfo_children()[0].winfo_children()[1].tag_configure("error", background="gray80", foreground="red")
 
-			enterGBut = tk.Button(self.eG, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
+			subFr = tk.Frame(self)
+			# enterGBut = tk.Button(self.eG, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
+			# enterGBut.pack(side='left', expand=True, fill='x')
+			# enterImmBut = tk.Button(self.eG, text='Hurry Up!', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c'), '1'))
+			# enterImmBut.pack(side='left', expand=True, fill='x')
+			enterGBut = tk.Button(subFr, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
 			enterGBut.pack(side='left', expand=True, fill='x')
-			# enterGBut.grid(row=5, column=0)
-			enterImmBut = tk.Button(self.eG, text='Hurry Up!', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c'), '1'))
+			enterImmBut = tk.Button(subFr, text='Hurry Up!', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c'), '1'))
 			enterImmBut.pack(side='left', expand=True, fill='x')
+			subFr.grid(row=5, column=0, columnspan=2)
 			self.eG.grid(row=4, column=0, columnspan=2, pady=(1,3), sticky="ns")
 		else:
 			self.eG.grid(row=4, column=0, columnspan=2, pady=(1,3), sticky="ns")
@@ -381,7 +388,7 @@ class BcD(tk.Tk):
 			self.footer.config(text='Submitting Grades...', bg='black', fg='springGreen', relief='raised')
 			self.footer.update_idletasks()
 			response = self.sess.post(url, json=post_data)
-			# app.update_idletasks()
+			self.update_idletasks()
 			text = response.text
 
 			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
@@ -399,8 +406,8 @@ class BcD(tk.Tk):
 			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
 
 			post_data = {'sig':sig, 'ping':ping}
-			response = self.sess.post(url, json=post_data)
-			text = response.text
+			response = self.sess.post(url, json=post_data).json()
+			text = response['status']
 
 		except (ConnectionError, requests.exceptions.RequestException) as e:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white')
@@ -428,10 +435,10 @@ class BcD(tk.Tk):
 				# refreshG.grid(row=0, column=1)
 			# self.reload_button = 1
 		elif text == "PING":
-			self.footer.config(text='SUCCESS', bg='black', fg='springGreen', relief='raised')
+			# self.footer.config(text='SUCCESS', bg='black', fg='springGreen', relief='raised')
+			# self.footer.update_idletasks()
 			self.eG.winfo_children()[0].winfo_children()[1].delete(1.0, "end")
-			self.footer.update_idletasks()
-			msgbox.showinfo(":)", "SUCCESS!")
+			msgbox.showinfo("RESPONSE", response['data'])
 
 	def updateG(self, event):
 		w = event.widget

@@ -1,4 +1,4 @@
-from flask import session
+from flask import session, jsonify
 # import psycopg2.extras
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
@@ -27,7 +27,7 @@ def Insert(data, count, ping='0', sig=None):
 				txid = mc.publishItem(api, session['username'], 'gradeinsert', session['insert'], sig, ping)
 			except:
 				print("MultiChain Error")
-				return "D"
+				return jsonify({'status':'D'})
 			else:
 				# t = session['insert'].split('||')
 				# std, courses, grades = [i.split(',') for i in t]
@@ -37,11 +37,12 @@ def Insert(data, count, ping='0', sig=None):
 				if ping == '1':
 					url = 'http://localhost:5001/ping'
 					try:
-						response = requests.post(url, data={'txid':txid})
+						# response = requests.post(url, data={'txid':txid})
+						response = requests.post(url, data={'id': session['username']})
 					except (ConnectionError, requests.exceptions.RequestException) as e:
-						return 'D'
+						return jsonify({'status':'D'})
 					else:
-						return response.text
-				return "S"
+						return jsonify({'status':'PING', 'data':response.text})
+				return jsonify({'status':'S'})
 		else:
-			return "D"
+			return jsonify({'status':'D'})
