@@ -18,7 +18,7 @@ def Update(uid, course, newGrade, sig=None):
 			import mc
 			try:
 				api = mc.getApi()
-				txid = mc.publishItem(api, session['username'], 'gradeupdate', session['update'], sig, '0')
+				txid = mc.publishItem(api, session['username'], 'gradeupdate', session['update'], sig)
 			except:
 				print("MultiChain Error")
 				return "D"

@@ -243,9 +243,15 @@ class BcD(tk.Tk):
 		refreshG.image = ref
 		refreshG.grid(row=0, column=1)
 
+		enterButF = tk.Frame(self)
+		enterImmBut = tk.Button(enterButF, text='POKE', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=self.poke)
+
 		if stud == 0: # an instructor
-			enterButton = tk.Button(self, text='Enter Grades', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=self.enterG)
-			enterButton.grid(row=2, column=0, padx=(40,5), pady=(5,2), sticky="e")
+			enterButton = tk.Button(enterButF, text='Enter Grades', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=self.enterG)
+			# enterButton.grid(row=2, column=0, padx=(40,5), pady=(5,2), sticky="e")
+			enterButton.grid(row=0, column=0, padx=(40,5), sticky="e")
+			enterButF.grid(row=2, column=0, padx=(40,5), pady=(5,2), sticky="e")
+			enterImmBut.grid(row=0, column=1, padx=(2,5), sticky="e")
 			viewButF.grid(row=2, column=1, padx=(5,40), pady=(5,2), sticky="w")
 		else: # a student
 			viewButF.grid(row=2, column=0, columnspan=2, pady=(5,2))
@@ -266,16 +272,17 @@ class BcD(tk.Tk):
 			enterGrades.pack(expand=True, fill="both")
 			self.eG.winfo_children()[0].winfo_children()[1].tag_configure("error", background="gray80", foreground="red")
 
-			subFr = tk.Frame(self)
+			subFr = tk.Frame(self.eG)
 			# enterGBut = tk.Button(self.eG, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
 			# enterGBut.pack(side='left', expand=True, fill='x')
 			# enterImmBut = tk.Button(self.eG, text='Hurry Up!', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c'), '1'))
 			# enterImmBut.pack(side='left', expand=True, fill='x')
 			enterGBut = tk.Button(subFr, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
 			enterGBut.pack(side='left', expand=True, fill='x')
-			enterImmBut = tk.Button(subFr, text='Hurry Up!', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c'), '1'))
-			enterImmBut.pack(side='left', expand=True, fill='x')
-			subFr.grid(row=5, column=0, columnspan=2)
+			# enterImmBut = tk.Button(subFr, text='Hurry Up!', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c'), '1'))
+			# enterImmBut.pack(side='left', expand=True, fill='x')
+			subFr.pack(side='left', expand=True, fill='x')
+			# subFr.grid(row=5, column=0, columnspan=2)
 			self.eG.grid(row=4, column=0, columnspan=2, pady=(1,3), sticky="ns")
 		else:
 			self.eG.grid(row=4, column=0, columnspan=2, pady=(1,3), sticky="ns")
@@ -333,6 +340,10 @@ class BcD(tk.Tk):
 
 				viewList.pack(side="left", expand=True, fill="both")
 
+
+
+
+
 				yscroll = tk.Scrollbar(self.vG, command=viewList.yview, orient="vertical")
 				yscroll.pack(side="right", fill="y")
 
@@ -354,7 +365,17 @@ class BcD(tk.Tk):
 			self.footer.config(text='Grades Retrieved Successfully', bg='black', fg='springGreen', relief='raised')
 			self.vG.grid(row=4, column=0, columnspan=2, pady=(1,7), sticky="ns")
 
-	def submitG(self, grades, ping='0'):
+	def poke(self):
+		url = 'http://localhost:5000/poke'
+		response = self.sess.post(url)
+		# print(response, response.json()['status'])
+		r = response.json()['data']
+		if r == '':
+			msgbox.showinfo("RESPONSE", "No new Transactions")
+		else:
+			msgbox.showinfo("RESPONSE", r)
+
+	def submitG(self, grades):
 		
 		post_data = {'data':[]}
 		gradeList = grades.split('\n')
@@ -405,7 +426,7 @@ class BcD(tk.Tk):
 			digest.update(text.encode())
 			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
 
-			post_data = {'sig':sig, 'ping':ping}
+			post_data = {'sig':sig}
 			response = self.sess.post(url, json=post_data).json()
 			text = response['status']
 
@@ -434,11 +455,11 @@ class BcD(tk.Tk):
 				# refreshG.image = ref
 				# refreshG.grid(row=0, column=1)
 			# self.reload_button = 1
-		elif text == "PING":
-			# self.footer.config(text='SUCCESS', bg='black', fg='springGreen', relief='raised')
-			# self.footer.update_idletasks()
-			self.eG.winfo_children()[0].winfo_children()[1].delete(1.0, "end")
-			msgbox.showinfo("RESPONSE", response['data'])
+		# elif text == "PING":
+		# 	# self.footer.config(text='SUCCESS', bg='black', fg='springGreen', relief='raised')
+		# 	# self.footer.update_idletasks()
+		# 	self.eG.winfo_children()[0].winfo_children()[1].delete(1.0, "end")
+		# 	msgbox.showinfo("RESPONSE", response['data'])
 
 	def updateG(self, event):
 		w = event.widget

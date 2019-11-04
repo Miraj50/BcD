@@ -5,7 +5,7 @@ from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
 import requests, time
 
-def Insert(data, count, ping='0', sig=None):
+def Insert(data, count, sig=None):
 	# time.sleep(10)
 	# cur = conn.cursor()
 	# stmt = "INSERT INTO std (uid, course, grade) VALUES %s"
@@ -24,25 +24,21 @@ def Insert(data, count, ping='0', sig=None):
 			import mc
 			try:
 				api = mc.getApi()
-				txid = mc.publishItem(api, session['username'], 'gradeinsert', session['insert'], sig, ping)
+				txid = mc.publishItem(api, session['username'], 'gradeinsert', session['insert'], sig)
 			except:
 				print("MultiChain Error")
 				return jsonify({'status':'D'})
 			else:
-				# t = session['insert'].split('||')
-				# std, courses, grades = [i.split(',') for i in t]
-				# cur.callproc('gradeInsert', (session['username'], std, courses, grades,))
-				# conn.commit()
 				session.pop('insert', None)
-				if ping == '1':
-					url = 'http://localhost:5001/ping'
-					try:
-						# response = requests.post(url, data={'txid':txid})
-						response = requests.post(url, data={'id': session['username']})
-					except (ConnectionError, requests.exceptions.RequestException) as e:
-						return jsonify({'status':'D'})
-					else:
-						return jsonify({'status':'PING', 'data':response.text})
+				# if ping == '1':
+				# 	url = 'http://localhost:5001/ping'
+				# 	try:
+				# 		# response = requests.post(url, data={'txid':txid})
+				# 		response = requests.post(url, data={'id': session['username']})
+				# 	except (ConnectionError, requests.exceptions.RequestException) as e:
+				# 		return jsonify({'status':'D'})
+				# 	else:
+				# 		return jsonify({'status':'PING', 'data':response.text})
 				return jsonify({'status':'S'})
 		else:
 			return jsonify({'status':'D'})

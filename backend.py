@@ -1,5 +1,5 @@
-from twisted.internet import task, reactor
-from flask import Flask, request, jsonify
+# from twisted.internet import task, reactor
+from flask import Flask, request, jsonify, session
 import mc, psycopg2, hashlib
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
@@ -7,18 +7,18 @@ from Crypto.Hash import SHA256
 from flask_apscheduler import APScheduler
 from collections import defaultdict
 from apscheduler.schedulers.background import BackgroundScheduler
-import atexit, threading
+import atexit, threading, os
 
 
 conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
 cur = conn.cursor()
 api = mc.getApi()
-timeout = 8
+# timeout = 8
 txRun = mc.streamInfo(api)
 stmt = "UPDATE txid SET tx=%s"
 
 
-POOL_TIME = 8
+POOL_TIME = 15
 log = defaultdict(list)
 
 dataLock = threading.Lock()
@@ -73,14 +73,14 @@ def pollAndExecute():
 					if not cur.fetchone()[0]:
 						#Execution failed, Handle exception
 						# with dataLock:
-						log[item['id']].append(item['data']+" I FAILURE")
+						log[item['id']].append(item['data']+"  I  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' gradeinsert\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+" I SUCCESS")
+						log[item['id']].append(item['data']+"  I  SUCCESS")
 					txRun = txRun + 1 
-					print('inside poll', log['ss'])
+					# print('inside poll', log['ss'])
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
 					print('INSERT', i['txid'])
@@ -89,16 +89,16 @@ def pollAndExecute():
 					cur.callproc('gradeupdate', (item['id'], uid, course, newGrade,))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+" U FAILURE")
+						log[item['id']].append(item['data']+"  U  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' gradeupdate\n')
 						#Execution failed, Handle exception
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+" U SUCCESS")
+						log[item['id']].append(item['data']+"  U  SUCCESS")
 					txRun = txRun + 1
 
-					print('inside pollu', log['ss'])
+					# print('inside pollu', log['ss'])
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
 					print('UPDATE', i['txid'])
@@ -140,6 +140,8 @@ def login():
 		phash = row[0][2]
 		calc = hashlib.pbkdf2_hmac('sha256', uid.encode(), pwd.encode(), 100000).hex()
 		if calc == phash:
+			session['user'] = uid
+			# print(session['username'])
 			response['pubkey'] = row[0][3]
 			response['success'] = 'S'
 		else:
@@ -160,12 +162,19 @@ def ping():
 	# r = helper([tx], '1')
 	pollAndExecute()
 	# scheduler.resume()
-	with dataLock:
-		r = log.pop(request.form['id'])
-	print("returning after pop", log['ss'], txRun)
+	r = log.pop(request.form['id'])
+	# with dataLock:
+		# r = log.pop(request.form['id'])
+	# print("returning after pop", log['ss'], txRun)
 	return "\n".join(r)
 
+# @app.route('/logout', methods=['GET', 'POST'])
+# def logout():
+# 	session.pop('user', None)
+# 	return 'S'
+
 if __name__ == '__main__':
+	app.secret_key = os.urandom(12)
 	# app.config.from_object(Config())
 	# scheduler.init_app(app)
 	# scheduler.start()

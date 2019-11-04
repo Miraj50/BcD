@@ -1,5 +1,5 @@
-from flask import Flask, session, request
-import os, psycopg2, secrets, hashlib
+from flask import Flask, session, request, jsonify
+import os, psycopg2, secrets, hashlib, requests
 
 app = Flask(__name__)
 
@@ -30,12 +30,23 @@ def view():
 	import View
 	return View.View()
 
+@app.route('/poke', methods=['POST'])
+def poke():
+	url = 'http://localhost:5001/ping'
+	try:
+		# response = requests.post(url, data={'txid':txid})
+		response = requests.post(url, data={'id': session['username']})
+	except (ConnectionError, requests.exceptions.RequestException) as e:
+		return jsonify({'status':'D'})
+	else:
+		return jsonify({'status':'PING', 'data':response.text})
+
 @app.route('/insert', methods=['POST'])
 def insert():
 	import Insert
 	post_data = request.json
 	if 'sig' in post_data:
-		return Insert.Insert(None, None, post_data['ping'], post_data['sig'])
+		return Insert.Insert(None, None, post_data['sig'])
 	else:
 		data = post_data['data']
 		count = post_data['count']
@@ -58,5 +69,6 @@ def logout():
 	return Logout.Logout()
 
 if __name__ == '__main__':
-	app.secret_key = os.urandom(12)
+	# app.secret_key = os.urandom(12)
+	app.secret_key = "OOkay"
 	app.run(debug=True)

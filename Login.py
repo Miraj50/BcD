@@ -5,7 +5,7 @@ def Login(uid, pwd, std):
 	url = 'http://localhost:5001/login'
 	post_data = {'uid': uid, 'pass': pwd, 'student': std}
 	try:
-		response = requests.post(url, data=post_data).json()
+		response = requests.Session().post(url, data=post_data).json()
 	except (ConnectionError, requests.exceptions.RequestException) as e:
 		return 'D'
 	session['logged_in'] = True

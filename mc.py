@@ -54,8 +54,8 @@ stream = 'stream1'
 def getApi():
 	return Savoir(rpcuser, rpcpasswd, rpchost, rpcport, chainname)
 
-def publishItem(api, id, type, data, sig, ping):
-	d = {'json':{'id':id, 'type':type, 'data':data, 'sig':sig, 'ping':ping}}
+def publishItem(api, id, type, data, sig):
+	d = {'json':{'id':id, 'type':type, 'data':data, 'sig':sig}}
 	return api.publish(stream, 'key1', d)
 
 def streamInfo(api):
