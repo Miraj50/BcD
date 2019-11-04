@@ -162,7 +162,11 @@ def ping():
 	# r = helper([tx], '1')
 	pollAndExecute()
 	# scheduler.resume()
-	r = log.pop(request.form['id'])
+	user = request.form['id']
+	if user in log:
+		r = log.pop(request.form['id'])
+	else:
+		r = []
 	# with dataLock:
 		# r = log.pop(request.form['id'])
 	# print("returning after pop", log['ss'], txRun)

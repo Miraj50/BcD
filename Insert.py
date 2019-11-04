@@ -7,14 +7,9 @@ import requests, time
 
 def Insert(data, count, sig=None):
 	# time.sleep(10)
-	# cur = conn.cursor()
-	# stmt = "INSERT INTO std (uid, course, grade) VALUES %s"
 	if sig is None:
 		v = [tuple(i.values()) for i in data]
 		s = map(list, zip(*v))
-		# template = ','.join(['%s'] * len(v))
-		# stmt_ = "INSERT INTO std(uid, course, grade) VALUES {}".format(template) 
-		# query = cur.mogrify(stmt_, v)
 		dt = "||".join([",".join(i) for i in s])
 		session['insert'] = dt
 		return dt
