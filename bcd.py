@@ -26,6 +26,7 @@ class BcD(tk.Tk):
 		self.footer = tk.Label(self, text='The world is coming to an end... SAVE YOUR BUFFERS !', font='Verdana 9', bg='black', fg='springGreen', relief='raised')
 		self.footer.grid(row=0, column=0, columnspan=2, sticky="nsew")
 		self.Start()
+		# self.Admin()
 
 	def Start(self):
 		
@@ -36,8 +37,8 @@ class BcD(tk.Tk):
 		login = tk.Frame(self)
 		login.grid(row=1, column=0, columnspan=2, pady=(5,5))
 		# ttk.Separator(self, orient="horizontal").grid(row=2, column=0, columnspan=2, sticky='nsew')
-		signup = tk.Frame(self)
-		signup.grid(row=3, column=0, columnspan=2, pady=(5,5))
+		# signup = tk.Frame(self)
+		# signup.grid(row=3, column=0, columnspan=2, pady=(5,5))
 
 		#login
 		loginText = tk.Label(login, text='Login', font='Fixedsys 16 bold', fg='darkblue')
@@ -138,25 +139,25 @@ class BcD(tk.Tk):
 		x = (ws/2) - (w/2)
 		self.geometry("+%d+%d" % (x, hs-h*2.5))
 
-	def checkEmpty(self, uid, pword, passPh):
+	def checkEmpty(self, uid, pword, pubkey):
 		if len(uid) == 0:
 			self.footer.config(text='Username field is Empty !', bg='red2', fg='white', relief='raised')
 			return 0
 		if len(pword) == 0:
 			self.footer.config(text='Password field is Empty !', bg='red2', fg='white', relief='raised')
 			return 0
-		if len(passPh) == 0:
-			self.footer.config(text='PassPhrase field is Empty !', bg='red2', fg='white', relief='raised')
+		if len(pubkey) == 0:
+			self.footer.config(text='Public Key field is Empty !', bg='red2', fg='white', relief='raised')
 			return 0
 		return 1
 
-	def SignUp(self, uid, pword, passPh):
-		if(not self.checkEmpty(uid, pword, passPh)):
+	def SignUp(self, uid, pword, pubkey):
+		if not self.checkEmpty(uid, pword, pubkey):
 			return
 
-		key = RSA.generate(2048)
-		pubkey = key.publickey().exportKey().hex()
-
+		# key = RSA.generate(2048)
+		# pubkey = key.publickey().exportKey().hex()
+		pkey = pubkey.encode().hex()
 		pass_h = hashlib.sha256(pword.encode()).hexdigest()
 
 		url = 'http://localhost:5000/signup'
@@ -171,9 +172,9 @@ class BcD(tk.Tk):
 			return
 
 		if text == "S":
-			encrypted_key = key.exportKey(passphrase=passPh, pkcs=8)
-			with open(os.path.expanduser("~/bcd/"+uid+".pem"), "wb+") as f:
-				f.write(encrypted_key)
+			# encrypted_key = key.exportKey(passphrase=passPh, pkcs=8)
+			# with open(os.path.expanduser("~/bcd/"+uid+".pem"), "wb+") as f:
+			# 	f.write(encrypted_key)
 			self.footer.config(text='Successfully Registered. Please Re-Login', bg='black', fg='springGreen', relief='raised')
 		elif text == "M":
 			self.footer.config(text='Username already taken !', bg='red2', fg='white', relief='raised')
@@ -195,7 +196,8 @@ class BcD(tk.Tk):
 			self.footer.config(text='Checking Login Information...', bg='black', fg='springGreen', relief='raised')
 			self.footer.update_idletasks()
 			response = self.sess.post(url, data=post_data)
-			text = response.text
+			r = response.json()
+			text = r['success']
 		except (ConnectionError, requests.exceptions.RequestException) as e:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 			return
@@ -203,13 +205,81 @@ class BcD(tk.Tk):
 		if text == "S":
 			self.uname = uid
 			self.student = stud
-			self.Home(stud)
+			if r['type'] == "0": ##############
+				self.Admin()
+			else:
+				self.Home(stud)
 		elif text == "U":
 			self.footer.config(text='Please SignUp !', bg='red2', fg='white', relief='raised')
 		elif text == "D":
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 		else:
 			self.footer.config(text='Incorrect Username or Password !', bg='red2', fg='white', relief='raised')
+
+	def Admin(self):
+		self.clear_widgets()
+		self.attributes('-zoomed', True)
+		self.title('Administrator')
+
+		self.footer.config(text='Logged in as Admin', bg='black', fg='springGreen', relief='raised')
+		topF = tk.Frame(self)
+		top = tk.Label(topF, text='Signed In as : ')
+		top.pack(side='left', expand=False)
+		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
+		u.pack(side='left', expand=False)
+		topF.grid(row=1, column=0, padx=(10,0), pady=(5,5), sticky="w")
+		logoutButton = tk.Button(self, text='LogOut', bg='brown4', fg='white', activebackground='brown', activeforeground='white', command=self.Logout)
+		logoutButton.grid(row=1, column=1, padx=(0,10), pady=(5,5), sticky="e")
+
+		ttk.Separator(self, orient="horizontal").grid(row=2, column=0, columnspan=2, sticky='nsew')
+
+		userEnrl = tk.Frame(self)
+		userEnrl.grid(row=3, column=0, columnspan=2, sticky='nsew')
+		userEnrl.grid_columnconfigure(5, weight=1)
+
+		enrollUser = tk.Label(userEnrl, text='Enroll User', font='Fixedsys 14 bold', fg='darkblue')
+		enrollUser.grid(row=0, column=0, columnspan=6, pady=(10,10), sticky='ew')
+		uid = tk.Label(userEnrl, text='UserID:', font='Fixedsys', fg='gray20')
+		pword = tk.Label(userEnrl, text='Choose Password:', font='Fixedsys', fg='gray20')
+		uid.grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		pword.grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
+
+		uidBox = tk.Entry(userEnrl)
+		uidBox.grid(row=1, column=1, padx=0, pady=(5,5), sticky="e")
+		pwordBox = tk.Entry(userEnrl, show='*')
+		pwordBox.grid(row=1, column=3, padx=(0,20), pady=(5,5), sticky="e")
+
+		tk.Label(userEnrl, text='Public Key:\n(Plain Text)', font='Fixedsys 11', fg='gray20').grid(row=1, column=4, padx=(5,0))
+		pkBox = tk.Entry(userEnrl)
+		pkBox.grid(row=1, column=5, padx=5, pady=(5,5), sticky="ew")
+		tk.Button(userEnrl, text='Enroll', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.Signup(uidBox.get(), pwordBox.get(), pkBox.get())).grid(row=2, column=0, columnspan=6, pady=(5,0))
+
+		ttk.Separator(self, orient="horizontal").grid(row=4, column=0, columnspan=2, pady=5, sticky='nsew')
+
+		updtpk = tk.Frame(self)
+		updtpk.grid(row=5, column=0, columnspan=2, sticky='nsew')
+		updtpk.grid_columnconfigure(3, weight=1)
+
+		updtkey = tk.Label(updtpk, text='Update Public Key', font='Fixedsys 14 bold', fg='darkblue')
+		updtkey.grid(row=0, column=0, columnspan=4, pady=(10,10), sticky='ew')
+		updtid = tk.Label(updtpk, text='UserID:', font='Fixedsys', fg='gray20')
+		updtid.grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		tk.Entry(updtpk).grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
+		npkey = tk.Label(updtpk, text='New Public Key:\n(Plain Text)', font='Fixedsys 11', fg='gray15')
+		npkey.grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
+		tk.Entry(updtpk).grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
+		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:print("Hello1")).grid(row=2, column=0, columnspan=4, pady=(5,0))
+
+
+		ttk.Separator(self, orient="horizontal").grid(row=6, column=0, columnspan=2, pady=5, sticky='nsew')
+
+		sqlprcd = tk.Frame(self)
+		sqlprcd.grid(row=7, column=0, columnspan=2, sticky='nsew')
+		sqlprcd.grid_columnconfigure(0, weight=1)
+		tk.Label(sqlprcd, text='Update/New SQL Procedure', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, pady=(10,10))
+		enterPrcd = scrolledtext.ScrolledText(sqlprcd, font='Verdana 11', wrap='word', spacing2=0, spacing3=7, width=50, height=10)
+		enterPrcd.grid(row=1, column=0)
+		tk.Button(sqlprcd, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:print("Hello2")).grid(row=2, column=0, pady=(5,0))
 
 	def Home(self, stud):
 		self.clear_widgets()
@@ -270,7 +340,7 @@ class BcD(tk.Tk):
 
 			enterGrades = scrolledtext.ScrolledText(self.eG, font='Verdana 11', wrap='word', spacing2=0, spacing3=7, width=50, height=12)
 			enterGrades.pack(expand=True, fill="both")
-			self.eG.winfo_children()[0].winfo_children()[1].tag_configure("error", background="gray80", foreground="red")
+			# self.eG.winfo_children()[0].winfo_children()[1].tag_configure("error", background="gray80", foreground="red")
 
 			subFr = tk.Frame(self.eG)
 			# enterGBut = tk.Button(self.eG, text='Submit Grades', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.submitG(enterGrades.get("1.0", 'end-1c')))
@@ -371,9 +441,9 @@ class BcD(tk.Tk):
 		# print(response, response.json()['status'])
 		r = response.json()['data']
 		if r == '':
-			msgbox.showinfo("RESPONSE", "No new Transactions")
+			msgbox.showinfo("Response", "No new Transactions")
 		else:
-			msgbox.showinfo("RESPONSE", r)
+			msgbox.showinfo("Response", r)
 
 	def submitG(self, grades):
 		

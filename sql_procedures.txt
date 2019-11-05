@@ -1,3 +1,14 @@
+CREATE OR REPLACE FUNCTION userenroll(text, text, text)
+RETURNS BOOLEAN AS
+$$
+BEGIN
+
+END;
+$$
+LANGUAGE plpgsql STRICT;
+
+============================
+
 CREATE OR REPLACE FUNCTION instrcheck(text, text) -- instr and course
 RETURNS BOOLEAN AS
 $$

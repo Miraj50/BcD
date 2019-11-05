@@ -4,10 +4,10 @@ import mc, psycopg2, hashlib
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
-from flask_apscheduler import APScheduler
 from collections import defaultdict
-from apscheduler.schedulers.background import BackgroundScheduler
 import atexit, threading, os
+# from flask_apscheduler import APScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 
 
 conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
@@ -110,7 +110,7 @@ def pollAndExecute():
 	yourThread.start() 
 		# txRun = txRun + len(txs)
 
-def doStuffStart():
+def startWork():
     global yourThread
     yourThread = threading.Timer(POOL_TIME, pollAndExecute)
     yourThread.start()
@@ -141,9 +141,12 @@ def login():
 		calc = hashlib.pbkdf2_hmac('sha256', uid.encode(), pwd.encode(), 100000).hex()
 		if calc == phash:
 			session['user'] = uid
-			# print(session['username'])
 			response['pubkey'] = row[0][3]
 			response['success'] = 'S'
+			if uid == 'admin':
+				response['admin'] = '1'
+			else:
+				response['admin'] = '0'
 		else:
 			response['success'] = 'N'
 	else:
@@ -183,5 +186,5 @@ if __name__ == '__main__':
 	# scheduler.init_app(app)
 	# scheduler.start()
 	# atexit.register(lambda: scheduler.shutdown())
-	doStuffStart()
+	startWork()
 	app.run(port=5001)
