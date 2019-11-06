@@ -345,15 +345,14 @@ class BcD(tk.Tk):
 		self.attributes('-zoomed', True)
 		self.title('Administrator')
 
-		self.grid_columnconfigure(0, weight=1)
 		self.footer.config(text='Logged in as Admin', bg='black', fg='springGreen', relief='raised')
-		topF = tk.Frame(self, bg='yellow')
-		topF.grid(row=1, column=0, padx=(10,0), pady=(5,5), sticky="w")
+		topF = tk.Frame(self)
+		topF.grid(row=1, column=0, padx=(10,0), pady=(5,5), sticky="ew")
 		top = tk.Label(topF, text='Signed in : ')
 		top.pack(side='left', expand=False)
 		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
 		u.pack(side='left', expand=False)
-		# tk.Button(topF, text='POKE', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=self.poke).pack(side='right', expand=True, fill='x')
+		tk.Button(topF, text='POKE', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=self.poke).pack(side='left', padx=100)
 
 		logoutButton = tk.Button(self, text='LogOut', bg='brown4', fg='white', activebackground='brown', activeforeground='white', command=self.Logout)
 		logoutButton.grid(row=1, column=1, padx=(0,10), pady=(5,5), sticky="e")
