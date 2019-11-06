@@ -1,8 +1,39 @@
-CREATE OR REPLACE FUNCTION userenroll(text, text, text)
+CREATE OR REPLACE FUNCTION userenroll(text, text, text, text)
 RETURNS BOOLEAN AS
 $$
 BEGIN
+INSERT INTO icreds(uid, salt, hash, pubkey) VALUES($1, $2, $3, $4);
+RETURN FOUND;
+EXCEPTION WHEN OTHERS THEN
+RETURN FALSE;
+END;
+$$
+LANGUAGE plpgsql STRICT;
 
+============================
+
+CREATE OR REPLACE FUNCTION updatepubkey(text, text)
+RETURNS BOOLEAN AS
+$$
+BEGIN
+UPDATE icreds SET pubkey=$2 WHERE uid=$1;
+RETURN FOUND;
+EXCEPTION WHEN OTHERS THEN
+RETURN FALSE;
+END;
+$$
+LANGUAGE plpgsql STRICT;
+
+============================
+
+CREATE OR REPLACE FUNCTION updatesqlpr(text)
+RETURNS BOOLEAN AS
+$$
+BEGIN
+EXECUTE $1;
+RETURN FOUND;
+EXCEPTION WHEN OTHERS THEN
+RETURN FALSE;
 END;
 $$
 LANGUAGE plpgsql STRICT;

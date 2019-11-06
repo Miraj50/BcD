@@ -3,19 +3,35 @@ import os, psycopg2, secrets, hashlib, requests
 
 app = Flask(__name__)
 
-# conn = None
-# def getDBConn():
-# 	global conn
-# 	if conn is None or conn.closed != 0:
-# 		conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
-
 @app.route('/signup', methods=['POST'])
 def signup():
-	uid = request.form['uid']
-	pwd = request.form['pass']
-	pubkey = request.form['pubkey']
 	import Signup
-	return Signup.Signup(uid, pwd, pubkey) # Incomplete
+	if 'sig' in request.form:
+		return Signup.Signup(None, None, None, request.form['sig'])
+	else:
+		uid = request.form['uid']
+		pwd = request.form['pass']
+		pubkey = request.form['pubkey']
+		return Signup.Signup(uid, pwd, pubkey)
+
+@app.route('/updatepk', methods=['POST'])
+def updatepk():
+	import UpdateAdmin
+	if 'sig' in request.form:
+		return UpdateAdmin.UpdatePk(None, None, request.form['sig'])
+	else:
+		uid = request.form['uid']
+		pubkey = request.form['pubkey']
+		return UpdateAdmin.UpdatePk(uid, pubkey)
+
+@app.route('/updatesqpr', methods=['POST'])
+def updatesqpr():
+	import UpdateAdmin
+	if 'sig' in request.form:
+		return UpdateAdmin.UpdateSQPr(None, request.form['sig'])
+	else:
+		pr = request.form['sqpr']
+		return UpdateAdmin.UpdateSQPr(pr)
 
 @app.route('/login', methods=['POST'])
 def login():

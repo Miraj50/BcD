@@ -5,7 +5,7 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
 from collections import defaultdict
-import atexit, threading, os
+import atexit, threading, os, secrets
 # from flask_apscheduler import APScheduler
 # from apscheduler.schedulers.background import BackgroundScheduler
 
@@ -18,7 +18,7 @@ txRun = mc.streamInfo(api)
 stmt = "UPDATE txid SET tx=%s"
 
 
-POOL_TIME = 15
+POOL_TIME = 3
 log = defaultdict(list)
 
 dataLock = threading.Lock()
@@ -102,6 +102,54 @@ def pollAndExecute():
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
 					print('UPDATE', i['txid'])
+				elif item['type'] == 'userenroll':
+					t = item['data'].split(',')
+					salt = secrets.token_hex(32)
+					phash = hashlib.pbkdf2_hmac('sha256', salt.encode(), t[1].encode(), 100000).hex()
+					cur.callproc('userenroll', (t[0], salt, phash, t[2],))
+					if not cur.fetchone()[0]:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  E  FAILURE")
+						with open("logs.txt", 'a') as f:
+							f.write(i['txid']+' userenroll\n')
+					else:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  E  SUCCESS")
+					txRun = txRun + 1 
+					cur.execute(stmt, (i['txid'],))
+					conn.commit()
+					print('ENROLL', i['txid'])
+
+				elif item['type'] == 'updatepubkey':
+					t = item['data'].split(',')
+					cur.callproc(item['type'], (t[0], t[1],))
+					if not cur.fetchone()[0]:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  UP  FAILURE")
+						with open("logs.txt", 'a') as f:
+							f.write(i['txid']+' updatepubkey\n')
+					else:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  UP  SUCCESS")
+					txRun = txRun + 1 
+					cur.execute(stmt, (i['txid'],))
+					conn.commit()
+					print('PUBKEY', i['txid'])
+
+				elif item['type'] == 'updatesqlpr':
+					cur.callproc(item['type'], (item['data'],))
+					if not cur.fetchone()[0]:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  SQL  FAILURE")
+						with open("logs.txt", 'a') as f:
+							f.write(i['txid']+' updatepubkey\n')
+					else:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  SQL  SUCCESS")
+					txRun = txRun + 1 
+					cur.execute(stmt, (i['txid'],))
+					conn.commit()
+					print('SQL Proc', i['txid'])
 			else:
 				with open("logs.txt", 'a') as f:
 					f.write(i['txid']+' Signature Mismatch')

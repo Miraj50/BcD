@@ -161,28 +161,51 @@ class BcD(tk.Tk):
 		pass_h = hashlib.sha256(pword.encode()).hexdigest()
 
 		url = 'http://localhost:5000/signup'
-		post_data = {'uid': uid, 'pass': pass_h, 'pubkey':pubkey}
+		post_data = {'uid': uid, 'pass': pass_h, 'pubkey':pkey}
 		try:
 			self.footer.config(text='Signing Up...', bg='black', fg='springGreen', relief='raised')
 			self.footer.update_idletasks()
-			response = requests.post(url, data=post_data)
+			response = self.sess.post(url, data=post_data)
 			text = response.text
+
+
+
+			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
+			if passPh is None:
+				return
+			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
+				try:
+					privkey = RSA.importKey(f.read(), passphrase=passPh)
+				except:
+					self.footer.config(text='Incorrect Passphrase !', bg='red2', fg='white', relief='raised')
+					return
+
+			digest = SHA256.new()
+			digest.update(text.encode())
+			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
+
+			post_data = {'sig':sig}
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
 		except (ConnectionError, requests.exceptions.RequestException) as e:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 			return
+
+
 
 		if text == "S":
 			# encrypted_key = key.exportKey(passphrase=passPh, pkcs=8)
 			# with open(os.path.expanduser("~/bcd/"+uid+".pem"), "wb+") as f:
 			# 	f.write(encrypted_key)
-			self.footer.config(text='Successfully Registered. Please Re-Login', bg='black', fg='springGreen', relief='raised')
+			self.footer.config(text='User Enrollment in Process', bg='black', fg='springGreen', relief='raised')
 		elif text == "M":
 			self.footer.config(text='Username already taken !', bg='red2', fg='white', relief='raised')
 		else:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 
 	def CheckLogin(self, uid, pword, stud):
-		if(not self.checkEmpty(uid, pword, passPh='None')):
+		if not self.checkEmpty(uid, pword, pubkey='None'):
 			return
 
 		self.sess = requests.Session()
@@ -205,7 +228,7 @@ class BcD(tk.Tk):
 		if text == "S":
 			self.uname = uid
 			self.student = stud
-			if r['type'] == "0": ##############
+			if r['type'] == "1":
 				self.Admin()
 			else:
 				self.Home(stud)
@@ -216,6 +239,77 @@ class BcD(tk.Tk):
 		else:
 			self.footer.config(text='Incorrect Username or Password !', bg='red2', fg='white', relief='raised')
 
+	def UpdatePK(self, uid, pubkey):
+		pkey = pubkey.encode().hex()
+		url = 'http://localhost:5000/updatepk'
+		post_data = {'uid': uid, 'pubkey':pubkey}
+		try:
+			# self.footer.config(text='Signing Up...', bg='black', fg='springGreen', relief='raised')
+			# self.footer.update_idletasks()
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
+			if passPh is None:
+				return
+			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
+				try:
+					privkey = RSA.importKey(f.read(), passphrase=passPh)
+				except:
+					self.footer.config(text='Incorrect Passphrase !', bg='red2', fg='white', relief='raised')
+					return
+
+			digest = SHA256.new()
+			digest.update(text.encode())
+			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
+
+			post_data = {'sig':sig}
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+		except (ConnectionError, requests.exceptions.RequestException) as e:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+			return
+		if text == 'S':
+			self.footer.config(text='Public Key Being Updated', bg='black', fg='springGreen', relief='raised')
+		else:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+
+	def UpdateSQPr(self, pr):
+		url = 'http://localhost:5000/updatesqpr'
+		post_data = {'sqpr':pr}
+		try:
+			# self.footer.config(text='Signing Up...', bg='black', fg='springGreen', relief='raised')
+			# self.footer.update_idletasks()
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
+			if passPh is None:
+				return
+			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
+				try:
+					privkey = RSA.importKey(f.read(), passphrase=passPh)
+				except:
+					self.footer.config(text='Incorrect Passphrase !', bg='red2', fg='white', relief='raised')
+					return
+
+			digest = SHA256.new()
+			digest.update(text.encode())
+			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
+
+			post_data = {'sig':sig}
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+		except (ConnectionError, requests.exceptions.RequestException) as e:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+			return
+		if text == 'S':
+			self.footer.config(text='SQL Procedure Sent', bg='black', fg='springGreen', relief='raised')
+		else:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+
 	def Admin(self):
 		self.clear_widgets()
 		self.attributes('-zoomed', True)
@@ -223,7 +317,7 @@ class BcD(tk.Tk):
 
 		self.footer.config(text='Logged in as Admin', bg='black', fg='springGreen', relief='raised')
 		topF = tk.Frame(self)
-		top = tk.Label(topF, text='Signed In as : ')
+		top = tk.Label(topF, text='Signed in : ')
 		top.pack(side='left', expand=False)
 		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
 		u.pack(side='left', expand=False)
@@ -262,24 +356,25 @@ class BcD(tk.Tk):
 
 		updtkey = tk.Label(updtpk, text='Update Public Key', font='Fixedsys 14 bold', fg='darkblue')
 		updtkey.grid(row=0, column=0, columnspan=4, pady=(10,10), sticky='ew')
-		updtid = tk.Label(updtpk, text='UserID:', font='Fixedsys', fg='gray20')
-		updtid.grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
-		tk.Entry(updtpk).grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
-		npkey = tk.Label(updtpk, text='New Public Key:\n(Plain Text)', font='Fixedsys 11', fg='gray15')
-		npkey.grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
-		tk.Entry(updtpk).grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
-		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:print("Hello1")).grid(row=2, column=0, columnspan=4, pady=(5,0))
-
+		tk.Label(updtpk, text='UserID:', font='Fixedsys', fg='gray20').grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		# updtid.grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		updtid = tk.Entry(updtpk)
+		updtid.grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
+		tk.Label(updtpk, text='New Public Key:\n(Plain Text)', font='Fixedsys 11', fg='gray15').grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
+		# npkey.grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
+		npkey = tk.Entry(updtpk)
+		npkey.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
+		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdatePK(updtid.get(), npkey.get())).grid(row=2, column=0, columnspan=4, pady=(5,0))
 
 		ttk.Separator(self, orient="horizontal").grid(row=6, column=0, columnspan=2, pady=5, sticky='nsew')
 
 		sqlprcd = tk.Frame(self)
 		sqlprcd.grid(row=7, column=0, columnspan=2, sticky='nsew')
 		sqlprcd.grid_columnconfigure(0, weight=1)
-		tk.Label(sqlprcd, text='Update/New SQL Procedure', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, pady=(10,10))
-		enterPrcd = scrolledtext.ScrolledText(sqlprcd, font='Verdana 11', wrap='word', spacing2=0, spacing3=7, width=50, height=10)
+		tk.Label(sqlprcd, text='Update/New SQL Function', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, pady=(10,10))
+		enterPrcd = scrolledtext.ScrolledText(sqlprcd, font='Verdana 10', wrap='word', spacing2=0, spacing3=0, width=50, height=12)
 		enterPrcd.grid(row=1, column=0)
-		tk.Button(sqlprcd, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:print("Hello2")).grid(row=2, column=0, pady=(5,0))
+		tk.Button(sqlprcd, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdateSQPr(enterPrcd.get("1.0", 'end-1c').strip())).grid(row=2, column=0, pady=(5,0))
 
 	def Home(self, stud):
 		self.clear_widgets()
@@ -291,7 +386,7 @@ class BcD(tk.Tk):
 
 		topF = tk.Frame(self)
 
-		top = tk.Label(topF, text='Signed In as : ')
+		top = tk.Label(topF, text='Signed in : ')
 		top.pack(side='left', expand=False)
 		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
 		u.pack(side='left', expand=False)
@@ -410,10 +505,6 @@ class BcD(tk.Tk):
 
 				viewList.pack(side="left", expand=True, fill="both")
 
-
-
-
-
 				yscroll = tk.Scrollbar(self.vG, command=viewList.yview, orient="vertical")
 				yscroll.pack(side="right", fill="y")
 
@@ -450,11 +541,6 @@ class BcD(tk.Tk):
 		post_data = {'data':[]}
 		gradeList = grades.split('\n')
 		num = 0
-
-		# passPh = simpledialog.askstring("PassPhrase", "Enter PassPhrase:", show='*')
-
-		# with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
-		# 	privkey = RSA.importKey(f.read(), passphrase=passPh)
 
 		for row in gradeList:
 			temp = row.split()
