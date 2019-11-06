@@ -2,10 +2,11 @@ import psycopg2, secrets, hashlib, os
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
+from flask import session
 
 def Signup(uid, pwd, pubkey, sig=None):
-	data = uid+','+pwd+','+pubkey
 	if sig is None:
+		data = uid+','+pwd+','+pubkey
 		session['signup'] = data
 		return data
 	else:

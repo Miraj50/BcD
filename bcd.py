@@ -168,8 +168,6 @@ class BcD(tk.Tk):
 			response = self.sess.post(url, data=post_data)
 			text = response.text
 
-
-
 			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
 			if passPh is None:
 				return
@@ -191,8 +189,6 @@ class BcD(tk.Tk):
 		except (ConnectionError, requests.exceptions.RequestException) as e:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 			return
-
-
 
 		if text == "S":
 			# encrypted_key = key.exportKey(passphrase=passPh, pkcs=8)
@@ -310,18 +306,55 @@ class BcD(tk.Tk):
 		else:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 
+	def InstrCourses(self, uid, courses):
+		url = 'http://localhost:5000/instrcourses'
+		post_data = {'uid': uid, 'crs':courses}
+		try:
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
+			if passPh is None:
+				return
+			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
+				try:
+					privkey = RSA.importKey(f.read(), passphrase=passPh)
+				except:
+					self.footer.config(text='Incorrect Passphrase !', bg='red2', fg='white', relief='raised')
+					return
+
+			digest = SHA256.new()
+			digest.update(text.encode())
+			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
+
+			post_data = {'sig':sig}
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+		except (ConnectionError, requests.exceptions.RequestException) as e:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+			return
+		if text == 'S':
+			self.footer.config(text='Adding Course(s) for Instructor', bg='black', fg='springGreen', relief='raised')
+		else:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+
 	def Admin(self):
 		self.clear_widgets()
+		self.geometry("")
 		self.attributes('-zoomed', True)
 		self.title('Administrator')
 
+		self.grid_columnconfigure(0, weight=1)
 		self.footer.config(text='Logged in as Admin', bg='black', fg='springGreen', relief='raised')
-		topF = tk.Frame(self)
+		topF = tk.Frame(self, bg='yellow')
+		topF.grid(row=1, column=0, padx=(10,0), pady=(5,5), sticky="w")
 		top = tk.Label(topF, text='Signed in : ')
 		top.pack(side='left', expand=False)
 		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
 		u.pack(side='left', expand=False)
-		topF.grid(row=1, column=0, padx=(10,0), pady=(5,5), sticky="w")
+		# tk.Button(topF, text='POKE', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=self.poke).pack(side='right', expand=True, fill='x')
+
 		logoutButton = tk.Button(self, text='LogOut', bg='brown4', fg='white', activebackground='brown', activeforeground='white', command=self.Logout)
 		logoutButton.grid(row=1, column=1, padx=(0,10), pady=(5,5), sticky="e")
 
@@ -346,7 +379,7 @@ class BcD(tk.Tk):
 		tk.Label(userEnrl, text='Public Key:\n(Plain Text)', font='Fixedsys 11', fg='gray20').grid(row=1, column=4, padx=(5,0))
 		pkBox = tk.Entry(userEnrl)
 		pkBox.grid(row=1, column=5, padx=5, pady=(5,5), sticky="ew")
-		tk.Button(userEnrl, text='Enroll', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.Signup(uidBox.get(), pwordBox.get(), pkBox.get())).grid(row=2, column=0, columnspan=6, pady=(5,0))
+		tk.Button(userEnrl, text='Enroll', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.SignUp(uidBox.get().strip(), pwordBox.get().strip(), pkBox.get().strip())).grid(row=2, column=0, columnspan=6, pady=(5,0))
 
 		ttk.Separator(self, orient="horizontal").grid(row=4, column=0, columnspan=2, pady=5, sticky='nsew')
 
@@ -364,17 +397,29 @@ class BcD(tk.Tk):
 		# npkey.grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
 		npkey = tk.Entry(updtpk)
 		npkey.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
-		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdatePK(updtid.get(), npkey.get())).grid(row=2, column=0, columnspan=4, pady=(5,0))
+		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdatePK(updtid.get().strip(), npkey.get().strip())).grid(row=2, column=0, columnspan=4)
 
 		ttk.Separator(self, orient="horizontal").grid(row=6, column=0, columnspan=2, pady=5, sticky='nsew')
 
 		sqlprcd = tk.Frame(self)
-		sqlprcd.grid(row=7, column=0, columnspan=2, sticky='nsew')
+		sqlprcd.grid(row=7, column=0, sticky='nsew')
 		sqlprcd.grid_columnconfigure(0, weight=1)
 		tk.Label(sqlprcd, text='Update/New SQL Function', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, pady=(10,10))
 		enterPrcd = scrolledtext.ScrolledText(sqlprcd, font='Verdana 10', wrap='word', spacing2=0, spacing3=0, width=50, height=12)
 		enterPrcd.grid(row=1, column=0)
 		tk.Button(sqlprcd, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdateSQPr(enterPrcd.get("1.0", 'end-1c').strip())).grid(row=2, column=0, pady=(5,0))
+
+		instrc = tk.Frame(self)
+		instrc.grid(row=7, column=1, sticky='nsew')
+		# instrc.grid_columnconfigure(1, weight=1)
+		tk.Label(instrc, text='Instructor-Course', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, columnspan=4, pady=(10,10))
+		tk.Label(instrc, text='UserID:', font='Fixedsys', fg='gray20').grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		instrid = tk.Entry(instrc)
+		instrid.grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
+		tk.Label(instrc, text='Courses:', font='Fixedsys 11', fg='gray15').grid(row=1, column=2, padx=(5,5), pady=(5,5), sticky="e")
+		courses = tk.Entry(instrc)
+		courses.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
+		tk.Button(instrc, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.InstrCourses(instrid.get().strip(), courses.get().strip())).grid(row=2, column=0, columnspan=4, pady=(5,0))
 
 	def Home(self, stud):
 		self.clear_widgets()

@@ -24,6 +24,16 @@ def updatepk():
 		pubkey = request.form['pubkey']
 		return UpdateAdmin.UpdatePk(uid, pubkey)
 
+@app.route('/instrcourses', methods=['POST'])
+def instrcourses():
+	import UpdateAdmin
+	if 'sig' in request.form:
+		return UpdateAdmin.InstrCourses(None, None, request.form['sig'])
+	else:
+		uid = request.form['uid']
+		courses = request.form['crs']
+		return UpdateAdmin.InstrCourses(uid, courses)
+
 @app.route('/updatesqpr', methods=['POST'])
 def updatesqpr():
 	import UpdateAdmin

@@ -20,9 +20,24 @@ def UpdatePk(uid, pubkey, sig=None):
 				return "D"
 			else:
 				session.pop('updatepk', None)
-				# cur.execute(stmt, v)
-				# conn.commit()
-				# conn.close()
+				return "S"
+
+def InstrCourses(uid, courses, sig=None):
+	if sig is None:
+		data = uid+'||'+courses
+		session['instrc'] = data
+		return data
+	else:
+		orig = SHA256.new(session['instrc'].encode())
+		if pkcs.new(RSA.importKey(session['pubkey'])).verify(orig, bytes.fromhex(sig)):
+			try:
+				api = mc.getApi()
+				txid = mc.publishItem(api, session['username'], 'instrcourses', session['instrc'], sig)
+			except:
+				print("MultiChain Error")
+				return "D"
+			else:
+				session.pop('instrc', None)
 				return "S"
 
 def UpdateSQPr(pr, sig=None):
@@ -40,7 +55,4 @@ def UpdateSQPr(pr, sig=None):
 				return "D"
 			else:
 				session.pop('updatesqpr', None)
-				# cur.execute(stmt, v)
-				# conn.commit()
-				# conn.close()
 				return "S"

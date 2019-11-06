@@ -106,6 +106,7 @@ def pollAndExecute():
 					t = item['data'].split(',')
 					salt = secrets.token_hex(32)
 					phash = hashlib.pbkdf2_hmac('sha256', salt.encode(), t[1].encode(), 100000).hex()
+					# print(t, salt, phash)
 					cur.callproc('userenroll', (t[0], salt, phash, t[2],))
 					if not cur.fetchone()[0]:
 						# with dataLock:
@@ -125,12 +126,12 @@ def pollAndExecute():
 					cur.callproc(item['type'], (t[0], t[1],))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  UP  FAILURE")
+						log[item['id']].append(item['data']+"  UPK  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' updatepubkey\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  UP  SUCCESS")
+						log[item['id']].append(item['data']+"  UPK  SUCCESS")
 					txRun = txRun + 1 
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
@@ -140,16 +141,32 @@ def pollAndExecute():
 					cur.callproc(item['type'], (item['data'],))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  SQL  FAILURE")
+						log[item['id']].append(item['data']+"  SQLF  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' updatepubkey\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  SQL  SUCCESS")
+						log[item['id']].append(item['data']+"  SQLF  SUCCESS")
 					txRun = txRun + 1 
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
 					print('SQL Proc', i['txid'])
+
+				elif item['type'] == 'instrcourses':
+					t = item['data'].split('||')
+					cur.callproc(item['type'], ([t[0] for i in t[1].split(',')], [i.strip() for i in t[1].split(',')],))
+					if not cur.fetchone()[0]:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  IC  FAILURE")
+						with open("logs.txt", 'a') as f:
+							f.write(i['txid']+' updatepubkey\n')
+					else:
+						# with dataLock:
+						log[item['id']].append(item['data']+"  IC  SUCCESS")
+					txRun = txRun + 1 
+					cur.execute(stmt, (i['txid'],))
+					conn.commit()
+					print('INSTR COURSES', i['txid'])
 			else:
 				with open("logs.txt", 'a') as f:
 					f.write(i['txid']+' Signature Mismatch')
@@ -186,7 +203,7 @@ def login():
 	if len(row) == 1:
 		salt = row[0][1]
 		phash = row[0][2]
-		calc = hashlib.pbkdf2_hmac('sha256', uid.encode(), pwd.encode(), 100000).hex()
+		calc = hashlib.pbkdf2_hmac('sha256', salt.encode(), pwd.encode(), 100000).hex()
 		if calc == phash:
 			session['user'] = uid
 			response['pubkey'] = row[0][3]
