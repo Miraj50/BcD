@@ -339,6 +339,10 @@ class BcD(tk.Tk):
 		else:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 
+	def clear(self, *args):
+		for i in args:
+			i.delete(0, "end")
+
 	def Admin(self):
 		self.clear_widgets()
 		self.geometry("")
@@ -379,7 +383,7 @@ class BcD(tk.Tk):
 		pkBox = tk.Entry(userEnrl)
 		pkBox.grid(row=1, column=5, padx=5, pady=(5,5), sticky="ew")
 		tk.Button(userEnrl, text='Enroll', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.SignUp(uidBox.get().strip(), pwordBox.get().strip(), pkBox.get().strip())).grid(row=2, column=4, pady=(5,0), sticky="e")
-		tk.Button(userEnrl, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda:(uidBox.delete(0, "end"), pwordBox.delete(0, "end"), pkBox.delete(0, "end"))).grid(row=2, column=5, pady=(5,0), sticky="w")
+		tk.Button(userEnrl, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.clear(uidBox, pwordBox, pkBox)).grid(row=2, column=5, pady=(5,0), sticky="w")
 
 		ttk.Separator(self, orient="horizontal").grid(row=4, column=0, columnspan=2, pady=5, sticky='nsew')
 
@@ -395,7 +399,7 @@ class BcD(tk.Tk):
 		npkey = tk.Entry(updtpk)
 		npkey.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
 		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdatePK(updtid.get().strip(), npkey.get().strip())).grid(row=2, column=2, sticky="e")
-		tk.Button(updtpk, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda:(updtid.delete(0, "end"), npkey.delete(0, "end"))).grid(row=2, column=3, sticky="w")
+		tk.Button(updtpk, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.clear(updtid, npkey)).grid(row=2, column=3, sticky="w")
 
 		ttk.Separator(self, orient="horizontal").grid(row=6, column=0, columnspan=2, pady=5, sticky='nsew')
 
@@ -420,7 +424,7 @@ class BcD(tk.Tk):
 		courses = tk.Entry(instrc)
 		courses.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
 		tk.Button(instrc, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.InstrCourses(instrid.get().strip(), courses.get().strip())).grid(row=2, column=1, pady=(5,0), sticky="e")
-		tk.Button(instrc, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda:(instrid.delete(0, "end"), courses.delete(0, "end"))).grid(row=2, column=2, pady=(5,0), sticky="w")
+		tk.Button(instrc, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda:self.clear(instrid, courses)).grid(row=2, column=2, pady=(5,0), sticky="w")
 
 	def Home(self, stud):
 		self.clear_widgets()
