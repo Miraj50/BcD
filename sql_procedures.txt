@@ -30,8 +30,8 @@ CREATE OR REPLACE FUNCTION updatesqlpr(text)
 RETURNS BOOLEAN AS
 $$
 BEGIN
-EXECUTE $1;
-RETURN FOUND;
+EXECUTE format($1);
+RETURN TRUE;
 EXCEPTION WHEN OTHERS THEN
 RETURN FALSE;
 END;
@@ -39,6 +39,19 @@ $$
 LANGUAGE plpgsql STRICT;
 
 ============================
+##Testing
+
+CREATE OR REPLACE FUNCTION testing(int, int)
+RETURNS BOOLEAN AS
+$$
+BEGIN
+RETURN $1 = $2;
+END;
+$$
+LANGUAGE plpgsql STRICT;
+
+============================
+
 
 CREATE OR REPLACE FUNCTION instrcheck(text, text) -- instr and course
 RETURNS BOOLEAN AS

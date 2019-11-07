@@ -25,6 +25,7 @@ class BcD(tk.Tk):
 		# self.reload_button = 0
 		self.footer = tk.Label(self, text='The world is coming to an end... SAVE YOUR BUFFERS !', font='Verdana 9', bg='black', fg='springGreen', relief='raised')
 		self.footer.grid(row=0, column=0, columnspan=2, sticky="nsew")
+		self.option_add('*Dialog.msg.font', 'Helvetica 11')
 		self.Start()
 		# self.Admin()
 
@@ -167,8 +168,11 @@ class BcD(tk.Tk):
 			self.footer.update_idletasks()
 			response = self.sess.post(url, data=post_data)
 			text = response.text
-
-			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
+			if len(text)<100:
+				abridge = text
+			else:
+				abridge = text[:100]+"....."+text[-10:]
+			passPh = simpledialog.askstring("PassPhrase", abridge+"\nEnter PassPhrase:", show='*')
 			if passPh is None:
 				return
 			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
@@ -244,8 +248,11 @@ class BcD(tk.Tk):
 			# self.footer.update_idletasks()
 			response = self.sess.post(url, data=post_data)
 			text = response.text
-
-			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
+			if len(text)<100:
+				abridge = text
+			else:
+				abridge = text[:100]+"....."+text[-10:]
+			passPh = simpledialog.askstring("PassPhrase", abridge+"\nEnter PassPhrase:", show='*')
 			if passPh is None:
 				return
 			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:

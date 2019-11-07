@@ -18,7 +18,7 @@ txRun = mc.streamInfo(api)
 stmt = "UPDATE txid SET tx=%s"
 
 
-POOL_TIME = 3
+POOL_TIME = 5
 log = defaultdict(list)
 
 dataLock = threading.Lock()
@@ -65,6 +65,10 @@ def pollAndExecute():
 			cur.execute("SELECT pubkey from icreds WHERE uid=%s", (item['id'],))
 			pubkey = bytes.fromhex(cur.fetchone()[0]).decode('utf-8')
 			orig = SHA256.new(item['data'].encode())
+			if len(item['data'])<100:
+				abridge = item['data']
+			else:
+				abridge = item['data'][:100]+"....."+item['data'][-10:]
 			if pkcs.new(RSA.importKey(pubkey)).verify(orig, bytes.fromhex(item['sig'])):
 				if item['type'] == 'gradeinsert':
 					t = item['data'].split('||')
@@ -73,12 +77,12 @@ def pollAndExecute():
 					if not cur.fetchone()[0]:
 						#Execution failed, Handle exception
 						# with dataLock:
-						log[item['id']].append(item['data']+"  I  FAILURE")
+						log[item['id']].append(abridge+"  (Insert)  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' gradeinsert\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  I  SUCCESS")
+						log[item['id']].append(abridge+"  (Insert)  SUCCESS")
 					txRun = txRun + 1 
 					# print('inside poll', log['ss'])
 					cur.execute(stmt, (i['txid'],))
@@ -89,13 +93,13 @@ def pollAndExecute():
 					cur.callproc('gradeupdate', (item['id'], uid, course, newGrade,))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  U  FAILURE")
+						log[item['id']].append(abridge+"  (Update)  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' gradeupdate\n')
 						#Execution failed, Handle exception
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  U  SUCCESS")
+						log[item['id']].append(abridge+"  (Update)  SUCCESS")
 					txRun = txRun + 1
 
 					# print('inside pollu', log['ss'])
@@ -110,12 +114,12 @@ def pollAndExecute():
 					cur.callproc('userenroll', (t[0], salt, phash, t[2],))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  E  FAILURE")
+						log[item['id']].append(abridge+"  (Enroll)  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' userenroll\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  E  SUCCESS")
+						log[item['id']].append(abridge+"  (Enroll)  SUCCESS")
 					txRun = txRun + 1 
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
@@ -126,12 +130,12 @@ def pollAndExecute():
 					cur.callproc(item['type'], (t[0], t[1],))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  UPK  FAILURE")
+						log[item['id']].append(abridge+"  (UPK)  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' updatepubkey\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  UPK  SUCCESS")
+						log[item['id']].append(abridge+"  (UPK)  SUCCESS")
 					txRun = txRun + 1 
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
@@ -141,12 +145,12 @@ def pollAndExecute():
 					cur.callproc(item['type'], (item['data'],))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  SQLF  FAILURE")
+						log[item['id']].append(abridge+"  (SQLF)  UNKNOWN")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' updatepubkey\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  SQLF  SUCCESS")
+						log[item['id']].append(abridge+"  (SQLF)  UNKNOWN")
 					txRun = txRun + 1 
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
@@ -157,12 +161,12 @@ def pollAndExecute():
 					cur.callproc(item['type'], ([t[0] for i in t[1].split(',')], [i.strip() for i in t[1].split(',')],))
 					if not cur.fetchone()[0]:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  IC  FAILURE")
+						log[item['id']].append(abridge+"  (I-Course)  FAILURE")
 						with open("logs.txt", 'a') as f:
 							f.write(i['txid']+' updatepubkey\n')
 					else:
 						# with dataLock:
-						log[item['id']].append(item['data']+"  IC  SUCCESS")
+						log[item['id']].append(abridge+"  (I-Course)  SUCCESS")
 					txRun = txRun + 1 
 					cur.execute(stmt, (i['txid'],))
 					conn.commit()
@@ -238,7 +242,7 @@ def ping():
 	# with dataLock:
 		# r = log.pop(request.form['id'])
 	# print("returning after pop", log['ss'], txRun)
-	return "\n".join(r)
+	return "\n\n".join(r)
 
 # @app.route('/logout', methods=['GET', 'POST'])
 # def logout():
