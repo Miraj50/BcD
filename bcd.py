@@ -157,11 +157,11 @@ class BcD(tk.Tk):
 
 		# key = RSA.generate(2048)
 		# pubkey = key.publickey().exportKey().hex()
-		pkey = pubkey.encode().hex()
+		# pkey = pubkey.encode().hex()
 		pass_h = hashlib.sha256(pword.encode()).hexdigest()
 
 		url = 'http://localhost:5000/signup'
-		post_data = {'uid': uid, 'pass': pass_h, 'pubkey':pkey}
+		post_data = {'uid': uid, 'pass': pass_h, 'pubkey':pubkey}
 		try:
 			self.footer.config(text='Signing Up...', bg='black', fg='springGreen', relief='raised')
 			self.footer.update_idletasks()
@@ -236,7 +236,7 @@ class BcD(tk.Tk):
 			self.footer.config(text='Incorrect Username or Password !', bg='red2', fg='white', relief='raised')
 
 	def UpdatePK(self, uid, pubkey):
-		pkey = pubkey.encode().hex()
+		# pkey = pubkey.encode().hex()
 		url = 'http://localhost:5000/updatepk'
 		post_data = {'uid': uid, 'pubkey':pubkey}
 		try:
@@ -379,7 +379,7 @@ class BcD(tk.Tk):
 		pwordBox = tk.Entry(userEnrl, show='*')
 		pwordBox.grid(row=1, column=3, padx=(0,20), pady=(5,5), sticky="e")
 
-		tk.Label(userEnrl, text='Public Key:\n(Plain Text)', font='Fixedsys 11', fg='gray20').grid(row=1, column=4, padx=(5,0))
+		tk.Label(userEnrl, text='Public Key:\n(Hex Encoded)', font='Fixedsys 11', fg='gray20').grid(row=1, column=4, padx=(5,0))
 		pkBox = tk.Entry(userEnrl)
 		pkBox.grid(row=1, column=5, padx=5, pady=(5,5), sticky="ew")
 		tk.Button(userEnrl, text='Enroll', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.SignUp(uidBox.get().strip(), pwordBox.get().strip(), pkBox.get().strip())).grid(row=2, column=4, pady=(5,0), sticky="e")
@@ -395,7 +395,7 @@ class BcD(tk.Tk):
 		tk.Label(updtpk, text='UserID:', font='Fixedsys', fg='gray20').grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
 		updtid = tk.Entry(updtpk)
 		updtid.grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
-		tk.Label(updtpk, text='New Public Key:\n(Plain Text)', font='Fixedsys 11', fg='gray15').grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
+		tk.Label(updtpk, text='New Public Key:\n(Hex Encoded)', font='Fixedsys 11', fg='gray15').grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
 		npkey = tk.Entry(updtpk)
 		npkey.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
 		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdatePK(updtid.get().strip(), npkey.get().strip())).grid(row=2, column=2, sticky="e")

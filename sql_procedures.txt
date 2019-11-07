@@ -56,10 +56,14 @@ CREATE OR REPLACE FUNCTION instrcourses(text[], text[])
 RETURNS BOOLEAN AS
 $$
 BEGIN
-INSERT INTO instr(id, course) SELECT * FROM unnest($1, $2);
-RETURN FOUND;
+IF exists(SELECT 1 from icreds where uid=$1[1]) THEN
+	INSERT INTO instr(id, course) SELECT * FROM unnest($1, $2);
+	RETURN FOUND;
+ELSE
+	RETURN FALSE;
+END IF;
 EXCEPTION WHEN OTHERS THEN
-RETURN FALSE;
+	RETURN FALSE;
 END;
 $$
 LANGUAGE plpgsql STRICT;

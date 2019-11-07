@@ -45,9 +45,9 @@
 from Savoir import Savoir
 
 rpcuser = 'multichainrpc'
-rpcpasswd = 'EM2YQvCpHuk39cSuDwwKWgV8VnpTqeUeVLepmoEQH4JC'
+rpcpasswd = '9vQaEnAsvThMnGyyLSHjrXsRziP6rsUSjV11oNttPo4t'
 rpchost = '127.0.0.1'
-rpcport = '4770'
+rpcport = '9724'
 chainname = 'chain1'
 stream = 'stream1'
 
