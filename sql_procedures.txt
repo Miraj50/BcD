@@ -1,11 +1,13 @@
 CREATE OR REPLACE FUNCTION userenroll(text, text, text, text)
-RETURNS BOOLEAN AS
+RETURNS TEXT AS
 $$
 BEGIN
 INSERT INTO icreds(uid, salt, hash, pubkey) VALUES($1, $2, $3, $4);
-RETURN FOUND;
+IF FOUND THEN
+	RETURN '1';
+END IF;
 EXCEPTION WHEN OTHERS THEN
-RETURN FALSE;
+RETURN '0' || SQLERRM;
 END;
 $$
 LANGUAGE plpgsql STRICT;
@@ -13,13 +15,15 @@ LANGUAGE plpgsql STRICT;
 ============================
 
 CREATE OR REPLACE FUNCTION updatepubkey(text, text)
-RETURNS BOOLEAN AS
+RETURNS TEXT AS
 $$
 BEGIN
 UPDATE icreds SET pubkey=$2 WHERE uid=$1;
-RETURN FOUND;
+IF FOUND THEN
+	RETURN '1';
+END IF;
 EXCEPTION WHEN OTHERS THEN
-RETURN FALSE;
+RETURN '0' || SQLERRM;
 END;
 $$
 LANGUAGE plpgsql STRICT;
@@ -27,13 +31,13 @@ LANGUAGE plpgsql STRICT;
 ============================
 
 CREATE OR REPLACE FUNCTION updatesqlpr(text)
-RETURNS BOOLEAN AS
+RETURNS TEXT AS
 $$
 BEGIN
 EXECUTE format($1);
-RETURN TRUE;
+RETURN '1';
 EXCEPTION WHEN OTHERS THEN
-RETURN FALSE;
+RETURN '0' || SQLERRM;
 END;
 $$
 LANGUAGE plpgsql STRICT;
@@ -66,17 +70,17 @@ LANGUAGE plpgsql STRICT;
 ============================
 
 CREATE OR REPLACE FUNCTION instrcourses(text[], text[])
-RETURNS BOOLEAN AS
+RETURNS TEXT AS
 $$
 BEGIN
-IF exists(SELECT 1 from icreds where uid=$1[1]) THEN
+IF exists(SELECT 1 FROM icreds WHERE uid=$1[1]) THEN
 	INSERT INTO instr(id, course) SELECT * FROM unnest($1, $2);
-	RETURN FOUND;
+	RETURN '1';
 ELSE
-	RETURN FALSE;
+	RETURN '0' || $1[1] || ' is not enrolled';
 END IF;
 EXCEPTION WHEN OTHERS THEN
-	RETURN FALSE;
+	RETURN '0' || SQLERRM;
 END;
 $$
 LANGUAGE plpgsql STRICT;
@@ -84,7 +88,7 @@ LANGUAGE plpgsql STRICT;
 ============================
 
 CREATE OR REPLACE FUNCTION gradeinsert(text, text[], text[], text[]) -- instr, std, course, grade
-RETURNS BOOLEAN AS
+RETURNS TEXT AS
 $$
 DECLARE c text[];
 DECLARE flag BOOLEAN := TRUE;
@@ -102,14 +106,14 @@ IF cardinality($2) = cardinality($3) AND cardinality($3) = cardinality($4) THEN
 	IF flag THEN
 		INSERT INTO std(uid, course, grade) SELECT * FROM unnest($2, $3, $4);
 	ELSE
-		RETURN FALSE;
+		RETURN '0instructor-course mismatch';
 	END IF;
-	RETURN FOUND;
+	RETURN '1';
 ELSE
-	RETURN FALSE;
+	RETURN '0unequal number of elements';
 END IF;
 EXCEPTION WHEN OTHERS THEN
-RETURN FALSE;
+RETURN '0' || SQLERRM;
 END;
 $$
 LANGUAGE plpgsql STRICT;
@@ -117,15 +121,17 @@ LANGUAGE plpgsql STRICT;
 ============================
 
 CREATE OR REPLACE FUNCTION gradeupdate(text, text, text, text) -- instr, std, course, grade
-RETURNS BOOLEAN AS
+RETURNS TEXT AS
 $$
 BEGIN
 IF instrcheck($1, $3) THEN
 	UPDATE std SET grade=$4 WHERE uid=$2 AND course=$3;
+ELSE
+	RETURN '0instructor-course mismatch';
 END IF;
-RETURN FOUND;
+RETURN '1';
 EXCEPTION WHEN OTHERS THEN
-RETURN FALSE;
+RETURN '0' || SQLERRM;
 END;
 $$
 LANGUAGE plpgsql STRICT;

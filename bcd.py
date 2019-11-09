@@ -25,7 +25,7 @@ class BcD(tk.Tk):
 		# self.reload_button = 0
 		self.footer = tk.Label(self, text='The world is coming to an end... SAVE YOUR BUFFERS !', font='Verdana 9', bg='black', fg='springGreen', relief='raised')
 		self.footer.grid(row=0, column=0, columnspan=2, sticky="nsew")
-		self.option_add('*Dialog.msg.font', 'Helvetica 11')
+		self.option_add('*Dialog.msg.font', 'Helvetica 10')
 		self.Start()
 		# self.Admin()
 

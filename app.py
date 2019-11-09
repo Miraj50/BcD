@@ -63,7 +63,7 @@ def poke():
 		# response = requests.post(url, data={'txid':txid})
 		response = requests.post(url, data={'id': session['username']})
 	except (ConnectionError, requests.exceptions.RequestException) as e:
-		return jsonify({'status':'D'})
+		return jsonify({'status':'D', data:''})
 	else:
 		return jsonify({'status':'PING', 'data':response.text})
 
