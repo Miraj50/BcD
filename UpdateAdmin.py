@@ -40,6 +40,24 @@ def InstrCourses(uid, courses, sig=None):
 				session.pop('instrc', None)
 				return "S"
 
+def ExecFunc(func, param, sig=None):
+	if sig is None:
+		data = func+'||'+param
+		session['execfunc'] = data
+		return data
+	else:
+		orig = SHA256.new(session['execfunc'].encode())
+		if pkcs.new(RSA.importKey(session['pubkey'])).verify(orig, bytes.fromhex(sig)):
+			try:
+				api = mc.getApi()
+				txid = mc.publishItem(api, session['username'], session['execfunc'].split('||')[0], session['execfunc'], sig)
+			except:
+				print("MultiChain Error")
+				return "D"
+			else:
+				session.pop('execfunc', None)
+				return "S"
+
 def UpdateSQPr(pr, sig=None):
 	if sig is None:
 		session['updatesqpr'] = pr

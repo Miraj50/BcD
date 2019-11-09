@@ -346,6 +346,41 @@ class BcD(tk.Tk):
 		else:
 			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
 
+	def ExecFunc(self, func, p):
+		url = 'http://localhost:5000/execfunc'
+		if func == '':
+			return
+		post_data = {'func': func, 'param':p}
+		try:
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+			passPh = simpledialog.askstring("PassPhrase", text+"\nEnter PassPhrase:", show='*')
+			if passPh is None:
+				return
+			with open(os.path.expanduser("~/bcd/"+self.uname+".pem"), "r") as f:
+				try:
+					privkey = RSA.importKey(f.read(), passphrase=passPh)
+				except:
+					self.footer.config(text='Incorrect Passphrase !', bg='red2', fg='white', relief='raised')
+					return
+
+			digest = SHA256.new()
+			digest.update(text.encode())
+			sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
+
+			post_data = {'sig':sig}
+			response = self.sess.post(url, data=post_data)
+			text = response.text
+
+		except (ConnectionError, requests.exceptions.RequestException) as e:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+			return
+		if text == 'S':
+			self.footer.config(text='Request sent to Execute Function', bg='black', fg='springGreen', relief='raised')
+		else:
+			self.footer.config(text='Some Error has Occurred !', bg='red2', fg='white', relief='raised')
+
 	def clear(self, *args):
 		for i in args:
 			i.delete(0, "end")
@@ -369,9 +404,13 @@ class BcD(tk.Tk):
 		logoutButton.grid(row=1, column=1, padx=(0,10), pady=(5,5), sticky="e")
 
 		ttk.Separator(self, orient="horizontal").grid(row=2, column=0, columnspan=2, sticky='nsew')
+		outofname = tk.Frame(self)
+		outofname.grid(row=3, column=0, columnspan=2, sticky="ew")
+		outofname.grid_columnconfigure(0, weight=1)
+		outofname.grid_columnconfigure(1, weight=1)
 
-		userEnrl = tk.Frame(self)
-		userEnrl.grid(row=3, column=0, columnspan=2, sticky='nsew')
+		userEnrl = tk.Frame(outofname)
+		userEnrl.grid(row=0, column=0, columnspan=2, sticky='nsew')
 		userEnrl.grid_columnconfigure(5, weight=1)
 
 		enrollUser = tk.Label(userEnrl, text='Enroll User', font='Fixedsys 14 bold', fg='darkblue')
@@ -392,10 +431,10 @@ class BcD(tk.Tk):
 		tk.Button(userEnrl, text='Enroll', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.SignUp(uidBox.get().strip(), pwordBox.get().strip(), pkBox.get().strip())).grid(row=2, column=4, pady=(5,0), sticky="e")
 		tk.Button(userEnrl, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.clear(uidBox, pwordBox, pkBox)).grid(row=2, column=5, pady=(5,0), sticky="w")
 
-		ttk.Separator(self, orient="horizontal").grid(row=4, column=0, columnspan=2, pady=5, sticky='nsew')
+		ttk.Separator(outofname, orient="horizontal").grid(row=1, column=0, columnspan=2, pady=5, sticky='nsew')
 
-		updtpk = tk.Frame(self)
-		updtpk.grid(row=5, column=0, columnspan=2, sticky='nsew')
+		updtpk = tk.Frame(outofname)
+		updtpk.grid(row=2, column=0, columnspan=2, sticky='nsew')
 		updtpk.grid_columnconfigure(3, weight=1)
 		updtkey = tk.Label(updtpk, text='Update Public Key', font='Fixedsys 14 bold', fg='darkblue')
 		updtkey.grid(row=0, column=0, columnspan=4, pady=(10,10), sticky='ew')
@@ -408,10 +447,10 @@ class BcD(tk.Tk):
 		tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdatePK(updtid.get().strip(), npkey.get().strip())).grid(row=2, column=2, sticky="e")
 		tk.Button(updtpk, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.clear(updtid, npkey)).grid(row=2, column=3, sticky="w")
 
-		ttk.Separator(self, orient="horizontal").grid(row=6, column=0, columnspan=2, pady=5, sticky='nsew')
+		ttk.Separator(outofname, orient="horizontal").grid(row=3, column=0, columnspan=2, pady=5, sticky='nsew')
 
-		sqlprcd = tk.Frame(self)
-		sqlprcd.grid(row=7, column=0, sticky='nsew')
+		sqlprcd = tk.Frame(outofname)
+		sqlprcd.grid(row=4, column=0, rowspan=3, sticky='nsew')
 		sqlprcd.grid_columnconfigure(0, weight=1)
 		sqlprcd.grid_columnconfigure(1, weight=1)
 		tk.Label(sqlprcd, text='Update/New SQL Function', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, columnspan=2, pady=(10,10))
@@ -420,8 +459,8 @@ class BcD(tk.Tk):
 		tk.Button(sqlprcd, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdateSQPr(enterPrcd.get("1.0", 'end-1c').strip())).grid(row=2, column=0, pady=(5,0), sticky="e")
 		tk.Button(sqlprcd, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: enterPrcd.delete(1.0, "end")).grid(row=2, column=1, pady=(5,0), sticky="w")
 
-		instrc = tk.Frame(self)
-		instrc.grid(row=7, column=1, sticky='nsew')
+		instrc = tk.Frame(outofname)
+		instrc.grid(row=4, column=1, sticky='nsew')
 		# instrc.grid_columnconfigure(1, weight=1)
 		tk.Label(instrc, text='Instructor-Course', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, columnspan=4, pady=(10,10))
 		tk.Label(instrc, text='UserID:', font='Fixedsys', fg='gray20').grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
@@ -432,6 +471,85 @@ class BcD(tk.Tk):
 		courses.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
 		tk.Button(instrc, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.InstrCourses(instrid.get().strip(), courses.get().strip())).grid(row=2, column=1, pady=(5,0), sticky="e")
 		tk.Button(instrc, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda:self.clear(instrid, courses)).grid(row=2, column=2, pady=(5,0), sticky="w")
+
+		ttk.Separator(outofname, orient="horizontal").grid(row=5, column=1, pady=5, sticky='nsew')
+
+		funcexec = tk.Frame(outofname)
+		funcexec.grid(row=6, column=1, sticky='nsew')
+		# funcexec.grid_columnconfigure(1, weight=1)
+		tk.Label(funcexec, text='Execute SQL Function', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, columnspan=4, pady=(10,10))
+		tk.Label(funcexec, text='Function Name:', font='Fixedsys', fg='gray20').grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		func = tk.Entry(funcexec)
+		func.grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
+		tk.Label(funcexec, text='Parameters:\n(Space separated)', font='Fixedsys 11', fg='gray15').grid(row=1, column=2, padx=(5,5), pady=(5,5), sticky="e")
+		param = tk.Entry(funcexec)
+		param.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
+		tk.Button(funcexec, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.ExecFunc(func.get(), param.get())).grid(row=2, column=1, pady=(5,0), sticky="e")
+		tk.Button(funcexec, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda:self.clear(func, param)).grid(row=2, column=2, pady=(5,0), sticky="w")
+
+
+		# userEnrl = tk.Frame(self)
+		# userEnrl.grid(row=3, column=0, columnspan=2, sticky='nsew')
+		# userEnrl.grid_columnconfigure(5, weight=1)
+
+		# enrollUser = tk.Label(userEnrl, text='Enroll User', font='Fixedsys 14 bold', fg='darkblue')
+		# enrollUser.grid(row=0, column=0, columnspan=6, pady=(10,10), sticky='ew')
+		# uid = tk.Label(userEnrl, text='UserID:', font='Fixedsys', fg='gray20')
+		# pword = tk.Label(userEnrl, text='Choose Password:', font='Fixedsys', fg='gray20')
+		# uid.grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		# pword.grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
+
+		# uidBox = tk.Entry(userEnrl)
+		# uidBox.grid(row=1, column=1, padx=0, pady=(5,5), sticky="e")
+		# pwordBox = tk.Entry(userEnrl, show='*')
+		# pwordBox.grid(row=1, column=3, padx=(0,20), pady=(5,5), sticky="e")
+
+		# tk.Label(userEnrl, text='Public Key:\n(Hex Encoded)', font='Fixedsys 11', fg='gray20').grid(row=1, column=4, padx=(5,0))
+		# pkBox = tk.Entry(userEnrl)
+		# pkBox.grid(row=1, column=5, padx=5, pady=(5,5), sticky="ew")
+		# tk.Button(userEnrl, text='Enroll', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.SignUp(uidBox.get().strip(), pwordBox.get().strip(), pkBox.get().strip())).grid(row=2, column=4, pady=(5,0), sticky="e")
+		# tk.Button(userEnrl, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.clear(uidBox, pwordBox, pkBox)).grid(row=2, column=5, pady=(5,0), sticky="w")
+
+		# ttk.Separator(self, orient="horizontal").grid(row=4, column=0, columnspan=2, pady=5, sticky='nsew')
+
+		# updtpk = tk.Frame(self)
+		# updtpk.grid(row=5, column=0, columnspan=2, sticky='nsew')
+		# updtpk.grid_columnconfigure(3, weight=1)
+		# updtkey = tk.Label(updtpk, text='Update Public Key', font='Fixedsys 14 bold', fg='darkblue')
+		# updtkey.grid(row=0, column=0, columnspan=4, pady=(10,10), sticky='ew')
+		# tk.Label(updtpk, text='UserID:', font='Fixedsys', fg='gray20').grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		# updtid = tk.Entry(updtpk)
+		# updtid.grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
+		# tk.Label(updtpk, text='New Public Key:\n(Hex Encoded)', font='Fixedsys 11', fg='gray15').grid(row=1, column=2, padx=(20,5), pady=(5,5), sticky="e")
+		# npkey = tk.Entry(updtpk)
+		# npkey.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
+		# tk.Button(updtpk, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdatePK(updtid.get().strip(), npkey.get().strip())).grid(row=2, column=2, sticky="e")
+		# tk.Button(updtpk, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: self.clear(updtid, npkey)).grid(row=2, column=3, sticky="w")
+
+		# ttk.Separator(self, orient="horizontal").grid(row=6, column=0, columnspan=2, pady=5, sticky='nsew')
+
+		# sqlprcd = tk.Frame(self)
+		# sqlprcd.grid(row=7, column=0, sticky='nsew')
+		# sqlprcd.grid_columnconfigure(0, weight=1)
+		# sqlprcd.grid_columnconfigure(1, weight=1)
+		# tk.Label(sqlprcd, text='Update/New SQL Function', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, columnspan=2, pady=(10,10))
+		# enterPrcd = scrolledtext.ScrolledText(sqlprcd, font='Verdana 10', wrap='word', spacing2=0, spacing3=0, width=50, height=12)
+		# enterPrcd.grid(row=1, column=0, columnspan=2)
+		# tk.Button(sqlprcd, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.UpdateSQPr(enterPrcd.get("1.0", 'end-1c').strip())).grid(row=2, column=0, pady=(5,0), sticky="e")
+		# tk.Button(sqlprcd, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda: enterPrcd.delete(1.0, "end")).grid(row=2, column=1, pady=(5,0), sticky="w")
+
+		# instrc = tk.Frame(self)
+		# instrc.grid(row=7, column=1, sticky='nsew')
+		# # instrc.grid_columnconfigure(1, weight=1)
+		# tk.Label(instrc, text='Instructor-Course', font='Fixedsys 14 bold', fg='darkblue').grid(row=0, column=0, columnspan=4, pady=(10,10))
+		# tk.Label(instrc, text='UserID:', font='Fixedsys', fg='gray20').grid(row=1, column=0, padx=5, pady=(5,5), sticky="e")
+		# instrid = tk.Entry(instrc)
+		# instrid.grid(row=1, column=1, padx=(0,5), pady=(5,5), sticky="e")
+		# tk.Label(instrc, text='Courses:', font='Fixedsys 11', fg='gray15').grid(row=1, column=2, padx=(5,5), pady=(5,5), sticky="e")
+		# courses = tk.Entry(instrc)
+		# courses.grid(row=1, column=3, padx=(0,5), pady=(5,5), sticky="ew")
+		# tk.Button(instrc, text='Submit', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=lambda:self.InstrCourses(instrid.get().strip(), courses.get().strip())).grid(row=2, column=1, pady=(5,0), sticky="e")
+		# tk.Button(instrc, text='Clear', bg='green', fg='white', activebackground='forestgreen', activeforeground='white', command=lambda:self.clear(instrid, courses)).grid(row=2, column=2, pady=(5,0), sticky="w")
 
 	def Home(self, stud):
 		self.clear_widgets()

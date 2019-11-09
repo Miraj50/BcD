@@ -34,6 +34,16 @@ def instrcourses():
 		courses = request.form['crs']
 		return UpdateAdmin.InstrCourses(uid, courses)
 
+@app.route('/execfunc', methods=['POST'])
+def execfunc():
+	import UpdateAdmin
+	if 'sig' in request.form:
+		return UpdateAdmin.ExecFunc(None, None, request.form['sig'])
+	else:
+		func = request.form['func']
+		param = request.form['param']
+		return UpdateAdmin.ExecFunc(func, param)
+
 @app.route('/updatesqpr', methods=['POST'])
 def updatesqpr():
 	import UpdateAdmin

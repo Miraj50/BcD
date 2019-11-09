@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, session
-import mc, psycopg2, hashlib
+import mc, psycopg2, hashlib, ast
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
@@ -7,7 +7,6 @@ from collections import defaultdict
 import atexit, threading, os, secrets, time
 # from flask_apscheduler import APScheduler
 from apscheduler.schedulers.background import BackgroundScheduler
-
 
 conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
 cur = conn.cursor()
@@ -27,18 +26,13 @@ def pollAndExecute():
 	# Do exception handling in cur.callproc()
 	check.clear()
 	global txRun, log
-	# global log
-	# global yourThread
 	# print(time.time(), x)
 	tot = mc.streamInfo(api)
 	# print(log['ss'], txRun, "tot=", tot)
 	if tot == txRun:
 		check.set()
-		# yourThread = threading.Timer(POOL_TIME, pollAndExecute)
-		# yourThread.start() 
 		return
 	else:
-		# print("Should not reach here", tot-txRun)
 		txs = mc.getItems(api, tot-txRun)
 		# latestTx = txs[-1]['txid']
 		# helper(txs, '0')
@@ -154,7 +148,6 @@ def pollAndExecute():
 					try:
 						cur.callproc(item['type'], (item['data'],))
 						res = cur.fetchone()[0]
-						print(res)
 						err = res[1:]
 					except psycopg2.Error as e:
 						err = e.diag.message_primary
@@ -162,11 +155,11 @@ def pollAndExecute():
 						conn.rollback()
 					else:
 						if res[0] == '0':
-							log[item['id']].append(abridge+"  (SQLF)  UNKNOWN")
+							log[item['id']].append(abridge+"  (SQLF) \ufe16 UNKNOWN")
 							with open("logs.txt", 'a') as f:
 								f.write(i['txid']+' updatepubkey\n')
 						else:
-							log[item['id']].append(abridge+"  (SQLF)  UNKNOWN")
+							log[item['id']].append(abridge+"  (SQLF) \ufe16 UNKNOWN")
 						# txRun = txRun + 1
 					finally:
 						cur.execute(stmt, (i['txid'],))
@@ -197,19 +190,35 @@ def pollAndExecute():
 						conn.commit()
 						print('INSTR COURSES', i['txid'])
 						txRun = txRun + 1
+				else:
+					t = item['data'].split('||')
+					funcname = t[0]
+					params = t[1].split()
+					try:
+						if len(params) == 0:
+							cur.callproc(item['type'])
+						elif len(params) == 1:
+							cur.callproc(item['type'], (ast.literal_eval(params[0]),))
+						else:
+							cur.callproc(item['type'], tuple(map(ast.literal_eval, params)))
+						res = cur.fetchone()[0]
+						# err = res[1:]
+					except psycopg2.Error as e:
+						err = e.diag.message_primary
+						log[item['id']].append(abridge+"  (Exec-Func)  \u2718 "+err)
+						conn.rollback()
+					else:
+						log[item['id']].append(abridge+"  (Exec-Func)  : "+str(res))
+					finally:
+						cur.execute(stmt, (i['txid'],))
+						conn.commit()
+						print('EXEC FUNC', i['txid'])
+						txRun = txRun + 1
 			else:
 				with open("logs.txt", 'a') as f:
 					f.write(i['txid']+' Signature Mismatch')
-	# print(time.time(), "E")
 		check.set()
-	# yourThread = threading.Timer(POOL_TIME, pollAndExecute)
-	# yourThread.start() 
-		# txRun = txRun + len(txs)
-
-# def startWork():
-#     global yourThread
-#     yourThread = threading.Timer(POOL_TIME, pollAndExecute)
-#     yourThread.start()
+	# print(time.time(), "E")
 
 # def job1():
 # 	print("OOhlala :)")
@@ -218,8 +227,6 @@ def pollAndExecute():
 
 # task.LoopingCall(job1).start(timeout)
 # reactor.run()
-
-# print("Hello")
 scheduler.add_job(id='123', func=pollAndExecute, trigger="interval", seconds=POOL_TIME)
 scheduler.start()
 
@@ -273,22 +280,11 @@ def ping():
 		r = []
 	scheduler.add_job(id='123', func=pollAndExecute, trigger="interval", seconds=POOL_TIME)
 
-
-	# with dataLock:
-		# r = log.pop(request.form['id'])
-	# print("returning after pop", log['ss'], txRun)
 	return "\n\n".join(r)
-
-# @app.route('/logout', methods=['GET', 'POST'])
-# def logout():
-# 	session.pop('user', None)
-# 	return 'S'
 
 if __name__ == '__main__':
 	app.secret_key = os.urandom(12)
-	# app.config.from_object(Config())
 	# scheduler.init_app(app)
 	# scheduler.start()
 	# atexit.register(lambda: scheduler.shutdown())
-	# startWork()
 	app.run(port=5001)
