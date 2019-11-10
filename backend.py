@@ -4,9 +4,9 @@ from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
 from collections import defaultdict
-import atexit, threading, os, secrets, time
-# from flask_apscheduler import APScheduler
+import threading, os, secrets, time
 from apscheduler.schedulers.background import BackgroundScheduler
+# from flask_apscheduler import APScheduler
 
 conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
 cur = conn.cursor()
@@ -18,12 +18,10 @@ stmt = "UPDATE txid SET tx=%s"
 POOL_TIME = 5
 log = defaultdict(list)
 
-# scheduler = APScheduler()
 scheduler = BackgroundScheduler()
 check = threading.Event()
 
 def pollAndExecute():
-	# Do exception handling in cur.callproc()
 	check.clear()
 	global txRun, log
 	# print(time.time(), x)
@@ -35,7 +33,6 @@ def pollAndExecute():
 	else:
 		txs = mc.getItems(api, tot-txRun)
 		# latestTx = txs[-1]['txid']
-		# helper(txs, '0')
 		for i in txs:
 			item = i['data']['json']
 			cur.execute("SELECT pubkey from icreds WHERE uid=%s", (item['id'],))
@@ -70,8 +67,8 @@ def pollAndExecute():
 					finally:
 						cur.execute(stmt, (i['txid'],))
 						conn.commit()
-						print('INSERT', i['txid'])
 						txRun = txRun + 1
+						print('INSERT', i['txid'])
 				elif item['type'] == 'gradeupdate':
 					uid, course, newGrade = item['data'].split(',')
 					try:
@@ -92,8 +89,8 @@ def pollAndExecute():
 					finally:
 						cur.execute(stmt, (i['txid'],))
 						conn.commit()
-						print('UPDATE', i['txid'])
 						txRun = txRun + 1
+						print('UPDATE', i['txid'])
 				elif item['type'] == 'userenroll':
 					t = item['data'].split(',')
 					salt = secrets.token_hex(32)
@@ -117,8 +114,8 @@ def pollAndExecute():
 					finally:
 						cur.execute(stmt, (i['txid'],))
 						conn.commit()
-						print('ENROLL', i['txid'])
 						txRun = txRun + 1
+						print('ENROLL', i['txid'])
 
 				elif item['type'] == 'updatepubkey':
 					t = item['data'].split(',')
@@ -141,8 +138,8 @@ def pollAndExecute():
 					finally:
 						cur.execute(stmt, (i['txid'],))
 						conn.commit()
-						print('PUBKEY', i['txid'])
 						txRun = txRun + 1
+						print('PUBKEY', i['txid'])
 
 				elif item['type'] == 'updatesqlpr':
 					try:
@@ -155,17 +152,17 @@ def pollAndExecute():
 						conn.rollback()
 					else:
 						if res[0] == '0':
-							log[item['id']].append(abridge+"  (SQLF) \ufe16 UNKNOWN")
+							log[item['id']].append(abridge+"  (SQLF) \u2718 "+err)
 							with open("logs.txt", 'a') as f:
 								f.write(i['txid']+' updatepubkey\n')
 						else:
-							log[item['id']].append(abridge+"  (SQLF) \ufe16 UNKNOWN")
+							log[item['id']].append(abridge+"  (SQLF) \u2714")
 						# txRun = txRun + 1
 					finally:
 						cur.execute(stmt, (i['txid'],))
 						conn.commit()
-						print('SQL Proc', i['txid'])
 						txRun = txRun + 1
+						print('SQL Proc', i['txid'])
 
 				elif item['type'] == 'instrcourses':
 					t = item['data'].split('||')
@@ -188,8 +185,8 @@ def pollAndExecute():
 					finally:
 						cur.execute(stmt, (i['txid'],))
 						conn.commit()
-						print('INSTR COURSES', i['txid'])
 						txRun = txRun + 1
+						print('INSTR COURSES', i['txid'])
 				else:
 					t = item['data'].split('||')
 					funcname = t[0]
@@ -212,8 +209,8 @@ def pollAndExecute():
 					finally:
 						cur.execute(stmt, (i['txid'],))
 						conn.commit()
-						print('EXEC FUNC', i['txid'])
 						txRun = txRun + 1
+						print('EXEC FUNC', i['txid'])
 			else:
 				with open("logs.txt", 'a') as f:
 					f.write(i['txid']+' Signature Mismatch')
@@ -225,8 +222,6 @@ def pollAndExecute():
 # 	# print(scheduler.get_job('123'))
 # 	scheduler.run_job(scheduler.get_job('123'))
 
-# task.LoopingCall(job1).start(timeout)
-# reactor.run()
 scheduler.add_job(id='123', func=pollAndExecute, trigger="interval", seconds=POOL_TIME)
 scheduler.start()
 
@@ -262,14 +257,9 @@ def login():
 def ping():
 	check.wait()
 	global log, txRun
-	# global txRun
-	# global yourThread
-	# yourThread.cancel()
 	# scheduler.pause()
 	# txid = request.form['txid']
 	# tx = mc.getItemByTxid(api, txid)
-	# r = helper([tx], '1')
-
 	scheduler.remove_job('123')
 	pollAndExecute()
 	# scheduler.resume()
@@ -284,7 +274,5 @@ def ping():
 
 if __name__ == '__main__':
 	app.secret_key = os.urandom(12)
-	# scheduler.init_app(app)
 	# scheduler.start()
-	# atexit.register(lambda: scheduler.shutdown())
 	app.run(port=5001)
