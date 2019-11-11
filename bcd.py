@@ -57,7 +57,7 @@ class BcD(tk.Tk):
 		# stud.set(0)
 		# checkStud = tk.Checkbutton(login, text='Login as Student', font='Fixedsys 8', variable=stud, onvalue=1, offvalue=0)
 		# checkStud.grid(row=3, column=1, padx=(0,30), sticky="w")
-		loginButton = tk.Button(login, text='Login', bg='blue', fg='white', activebackground='blue3', activeforeground='white', command=lambda: self.CheckLogin(nameBox.get(), pwordBox.get(), stud.get()))
+		loginButton = tk.Button(login, text='Login', bg='blue', fg='white', activebackground='blue3', activeforeground='white', command=lambda: self.CheckLogin(nameBox.get(), pwordBox.get()))
 		loginButton.grid(row=3, column=0, columnspan=2, pady=(5,10))
 		loginButton.bind('<Return>', lambda e: self.CheckLogin(nameBox.get(), pwordBox.get()))
 		# loginButton.bind('<Return>', lambda e: self.CheckLogin(nameBox.get(), pwordBox.get(), stud.get()))
@@ -322,7 +322,7 @@ class BcD(tk.Tk):
 		top.pack(side='left', expand=False)
 		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
 		u.pack(side='left', expand=False)
-		tk.Button(topF, text='POKE', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=self.poke).pack(side='left', padx=100)
+		tk.Button(topF, text='POKE', bg='firebrick2', fg='white', activebackground='tomato', activeforeground='white', command=self.poke).pack(side='left', padx=100)
 
 		logoutButton = tk.Button(self, text='LogOut', bg='brown4', fg='white', activebackground='brown', activeforeground='white', command=self.Logout)
 		logoutButton.grid(row=1, column=1, padx=(0,10), pady=(5,5), sticky="e")
@@ -507,14 +507,14 @@ class BcD(tk.Tk):
 		refreshG.grid(row=0, column=1)
 
 		enterButF = tk.Frame(self)
-		enterImmBut = tk.Button(enterButF, text='POKE', bg='deepskyblue4', fg='white', activebackground='deepskyblue3', activeforeground='white', command=self.poke)
+		pokeBut = tk.Button(enterButF, text='POKE', bg='firebrick2', fg='white', activebackground='tomato', activeforeground='white', command=self.poke)
 
 		if stud == 0: # an instructor
 			enterButton = tk.Button(enterButF, text='Enter Grades', bg='blue3', fg='white', activebackground='blue', activeforeground='white', command=self.enterG)
 			# enterButton.grid(row=2, column=0, padx=(40,5), pady=(5,2), sticky="e")
 			enterButton.grid(row=0, column=0, padx=(40,5), sticky="e")
 			enterButF.grid(row=2, column=0, padx=(40,5), pady=(5,2), sticky="e")
-			enterImmBut.grid(row=0, column=1, padx=(2,5), sticky="e")
+			pokeBut.grid(row=0, column=1, padx=(2,5), sticky="e")
 			viewButF.grid(row=2, column=1, padx=(5,40), pady=(5,2), sticky="w")
 		else: # a student
 			viewButF.grid(row=2, column=0, columnspan=2, pady=(5,2))

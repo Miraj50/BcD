@@ -1,16 +1,14 @@
 from flask import session, jsonify
-# import psycopg2.extras
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
-import requests, time
+import requests
 
 def Insert(data, count, sig=None):
-	# time.sleep(10)
 	if sig is None:
 		v = [tuple(i.values()) for i in data]
 		s = map(list, zip(*v))
-		dt = "||".join([",".join(i) for i in s])
+		dt = "||".join([",".join(i) for i in s])+"||gradeinsert"
 		session['insert'] = dt
 		return dt
 	else:
@@ -25,15 +23,6 @@ def Insert(data, count, sig=None):
 				return jsonify({'status':'D'})
 			else:
 				session.pop('insert', None)
-				# if ping == '1':
-				# 	url = 'http://localhost:5001/ping'
-				# 	try:
-				# 		# response = requests.post(url, data={'txid':txid})
-				# 		response = requests.post(url, data={'id': session['username']})
-				# 	except (ConnectionError, requests.exceptions.RequestException) as e:
-				# 		return jsonify({'status':'D'})
-				# 	else:
-				# 		return jsonify({'status':'PING', 'data':response.text})
 				return jsonify({'status':'S'})
 		else:
 			return jsonify({'status':'D'})

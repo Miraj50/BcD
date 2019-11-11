@@ -6,7 +6,7 @@ from flask import session
 
 def Signup(uid, pwd, pubkey, sig=None):
 	if sig is None:
-		data = uid+','+pwd+','+pubkey
+		data = uid+','+pwd+','+pubkey+',userenroll'
 		session['signup'] = data
 		return data
 	else:
@@ -21,29 +21,4 @@ def Signup(uid, pwd, pubkey, sig=None):
 				return "D"
 			else:
 				session.pop('update', None)
-				# cur.execute(stmt, v)
-				# conn.commit()
-				# conn.close()
 				return "S"
-		# salt = secrets.token_hex(32)
-		# phash = hashlib.pbkdf2_hmac('sha256', uid.encode(), pwd.encode(), 100000).hex()
-		# stmt = "INSERT INTO icreds (uid, salt, hash, pubkey) VALUES (%s, %s, %s, %s)"
-		# v = (uid, salt, phash, pubkey,)
-		# query = cur.mogrify(stmt, v)
-		# with open(os.path.expanduser("~/bcd/admin.pem"), "r") as f:
-		# 	privkey = RSA.importKey(f.read(), passphrase='a')
-		# digest = SHA256.new()
-		# digest.update(query)
-		# sig = pkcs.new(RSA.importKey(privkey.exportKey())).sign(digest).hex()
-		# import mc
-		# try:
-		# 	api = mc.getApi()
-		# 	txid = mc.publishItem(api, 'admin', 'userenroll', '', sig)
-		# except:
-		# 	print("MultiChain Error")
-		# 	return "M"
-		# else:
-		# 	cur.execute(stmt, v)
-		# 	conn.commit()
-		# 	conn.close()
-		# 	return "S"

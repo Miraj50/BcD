@@ -4,11 +4,12 @@ import requests
 def Login(uid, pwd, std):
 	url = 'http://localhost:5001/login'
 	post_data = {'uid': uid, 'pass': pwd, 'student': std}
+	r = {}
 	try:
 		response = requests.post(url, data=post_data).json()
 	except (ConnectionError, requests.exceptions.RequestException) as e:
-		return 'D'
-	r = {}
+		r['success'] = 'D'
+		return jsonify(r)
 	if response['success'] == 'S':
 		session['logged_in'] = True
 		session['username'] = uid

@@ -105,6 +105,6 @@ def logout():
 	return Logout.Logout()
 
 if __name__ == '__main__':
-	# app.secret_key = os.urandom(12)
-	app.secret_key = "OOkay"
+	app.secret_key = os.urandom(12)
+	# app.secret_key = "OOkay"
 	app.run(debug=True)

@@ -6,7 +6,7 @@ from flask import session
 
 def UpdatePk(uid, pubkey, sig=None):
 	if sig is None:
-		data = uid+','+pubkey
+		data = uid+','+pubkey+',updatepubkey'
 		session['updatepk'] = data
 		return data
 	else:
@@ -24,7 +24,7 @@ def UpdatePk(uid, pubkey, sig=None):
 
 def InstrCourses(uid, courses, sig=None):
 	if sig is None:
-		data = uid+'||'+courses
+		data = uid+'||'+courses+'||instrcourses'
 		session['instrc'] = data
 		return data
 	else:
