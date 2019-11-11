@@ -1,3 +1,5 @@
+## Future Work
+## Currently it gets the data by directly conncecting with the database, which it shouldn't.
 from flask import session
 import psycopg2
 

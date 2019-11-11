@@ -5,7 +5,7 @@ from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
 from collections import defaultdict
 import threading, os, secrets, time
-import select, socket, requests
+from apscheduler.schedulers.background import BackgroundScheduler
 
 conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
 cur = conn.cursor()
@@ -17,11 +17,16 @@ stmt = "UPDATE txid SET tx=%s"
 POOL_TIME = 5
 log = defaultdict(list)
 
+scheduler = BackgroundScheduler()
+check = threading.Event()
+
 def pollAndExecute():
+	check.clear()
 	global txRun, log
 	# print(time.time(), x)
 	tot = mc.streamInfo(api)
 	if tot == txRun:
+		check.set()
 		return
 	else:
 		txs = mc.getItems(api, tot-txRun)
@@ -207,50 +212,10 @@ def pollAndExecute():
 			else:
 				with open("logs.txt", 'a') as f:
 					f.write(i['txid']+' Signature Mismatch')
-		# check.set()
+		check.set()
 	# print(time.time(), "E")
 
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server.setblocking(0)
-server_address = ('localhost', 5002)
-# print('starting up on %s port %s' % server_address)
-server.bind(server_address)
-# Listen for incoming connections
-server.listen(2)
-inputs = [server] # Sockets from which we expect to read
-outputs = [] # Sockets to which we expect to write
-
-def work():
-	global log
-	while inputs:
-		# print(time.time(), 'Waiting for the next event')
-		readable, writable, exceptional = select.select(inputs, outputs, inputs, POOL_TIME)
-		if not (readable or writable or exceptional):
-			pollAndExecute()
-			continue
-		for s in readable:
-			if s is server:
-				# A "readable" server socket is ready to accept a connection
-				connection, client_address = s.accept()
-				print('new connection from', client_address)
-				connection.setblocking(0)
-				pollAndExecute()
-				inputs.append(connection)
-			else:
-				data = s.recv(1024)
-				if s not in outputs:
-					outputs.append(s)
-		# Handle outputs
-		for s in writable:
-			r = ("HTTP/1.1 200 OK\n"
-				+"Content-Type: text/html\n"
-				+"\n").encode()
-			s.send(r)
-			inputs.remove(s)
-			outputs.remove(s)
-			s.close()
-
-pollThread = threading.Thread(target=work)
+scheduler.add_job(id='123', func=pollAndExecute, trigger="interval", seconds=POOL_TIME)
 
 app = Flask(__name__)
 
@@ -282,17 +247,22 @@ def login():
 
 @app.route('/ping', methods=['POST'])
 def ping():
-	# print("threads = ", threading.active_count())
+	# print("No. of threads = ", threading.active_count())
+	check.wait()
 	global log
-	response = requests.post('http://localhost:5002')
+	# scheduler.pause() #Can also be used. May run tests to confirm.
+	scheduler.remove_job('123')
+	pollAndExecute()
+	# scheduler.resume()
 	user = request.form['id']
 	if user in log:
 		r = log.pop(request.form['id'])
 	else:
 		r = []
+	scheduler.add_job(id='123', func=pollAndExecute, trigger="interval", seconds=POOL_TIME)
 	return "\n\n".join(r)
 
 if __name__ == '__main__':
 	app.secret_key = os.urandom(12)
-	pollThread.start()
+	scheduler.start()
 	app.run(port=5001)

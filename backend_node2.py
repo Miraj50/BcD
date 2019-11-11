@@ -7,7 +7,7 @@ from collections import defaultdict
 import threading, os, secrets, time
 import select, socket, requests
 
-conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
+conn = psycopg2.connect(database="postgres", user="rishabhrj", host="127.0.0.1", port="5290")
 cur = conn.cursor()
 api = mc.getApi()
 
@@ -212,7 +212,7 @@ def pollAndExecute():
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setblocking(0)
-server_address = ('localhost', 5002)
+server_address = ('localhost', 5221)
 # print('starting up on %s port %s' % server_address)
 server.bind(server_address)
 # Listen for incoming connections
@@ -284,7 +284,7 @@ def login():
 def ping():
 	# print("threads = ", threading.active_count())
 	global log
-	response = requests.post('http://localhost:5002')
+	response = requests.post('http://localhost:5221')
 	user = request.form['id']
 	if user in log:
 		r = log.pop(request.form['id'])
@@ -295,4 +295,4 @@ def ping():
 if __name__ == '__main__':
 	app.secret_key = os.urandom(12)
 	pollThread.start()
-	app.run(port=5001)
+	app.run(port=5007)

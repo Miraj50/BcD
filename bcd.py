@@ -98,7 +98,7 @@ class BcD(tk.Tk):
 			if len(text)<100:
 				abridge = text
 			else:
-				abridge = text[:100]+"....."+text[-10:]
+				abridge = text[:90]+"....."+text[-20:]
 			passPh = simpledialog.askstring("PassPhrase", abridge+"\nEnter PassPhrase:", show='*')
 			if passPh is None:
 				return
