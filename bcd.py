@@ -316,13 +316,14 @@ class BcD(tk.Tk):
 		self.title('Administrator')
 
 		self.footer.config(text='Logged in as Admin', bg='black', fg='springGreen', relief='raised')
-		topF = tk.Frame(self)
+		topF = tk.Frame(self, highlightbackground="yellow")
 		topF.grid(row=1, column=0, padx=(10,0), pady=(5,5), sticky="ew")
 		top = tk.Label(topF, text='Signed in : ')
 		top.pack(side='left', expand=False)
 		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
 		u.pack(side='left', expand=False)
 		tk.Button(topF, text='POKE', bg='firebrick2', fg='white', activebackground='tomato', activeforeground='white', command=self.poke).pack(side='left', padx=100)
+		tk.Button(topF, text='VERIFY', bg='lightcoral', fg='white', activebackground='coral', activeforeground='white', command=self.idbi).pack(side='right')
 
 		logoutButton = tk.Button(self, text='LogOut', bg='brown4', fg='white', activebackground='brown', activeforeground='white', command=self.Logout)
 		logoutButton.grid(row=1, column=1, padx=(0,10), pady=(5,5), sticky="e")
@@ -624,6 +625,16 @@ class BcD(tk.Tk):
 		r = response.json()['data']
 		if r == '':
 			msgbox.showinfo("Response", "No new Transactions")
+		else:
+			msgbox.showinfo("Response", r)
+
+	def idbi(self):
+		url = 'http://localhost:5000/idbi'
+		response = self.sess.post(url)
+		# print(response, response.json()['status'])
+		r = response.json()['data']
+		if r == ':)':
+			msgbox.showinfo("Response", "All Good! :-)")
 		else:
 			msgbox.showinfo("Response", r)
 

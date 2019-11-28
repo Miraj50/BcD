@@ -1,11 +1,13 @@
 from flask import Flask, request, jsonify, session
-import mc, psycopg2, hashlib, ast
+import mc, psycopg2, hashlib, ast, math
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5 as pkcs
 from Crypto.Hash import SHA256
 from collections import defaultdict
 import threading, os, secrets, time
 import select, socket, requests
+from anytree import Node, RenderTree, LevelOrderIter
+from itertools import product
 
 conn = psycopg2.connect(database="rraj", user="rraj", password="Hack@hack1", host="127.0.0.1", port="5432")
 cur = conn.cursor()
@@ -17,6 +19,8 @@ stmt = "UPDATE txid SET tx=%s"
 POOL_TIME = 5
 log = defaultdict(list)
 
+makeTree = 1 ########################################################################################
+
 def pollAndExecute():
 	global txRun, log
 	# print(time.time(), x)
@@ -24,6 +28,7 @@ def pollAndExecute():
 	if tot == txRun:
 		return
 	else:
+		makeTree = 1
 		txs = mc.getItems(api, tot-txRun)
 		# latestTx = txs[-1]['txid']
 		for i in txs:
@@ -292,7 +297,77 @@ def ping():
 		r = []
 	return "\n\n".join(r)
 
+h1_bits = 0
+def base_k(x, k):
+	t = []
+	while x!=0:
+		t.append(x%k)
+		x = x//k
+	return "".join(map(str, t))[:h1_bits]
+
+mtree = None
+h1 = defaultdict(list)
+leaves = {}
+
+@app.route('/idbi', methods=['POST'])
+def idbi():
+	global makeTree, mtree, h1_bits, h1, leaves
+	if makeTree == 1: #Change it to 1
+		print("making Merkle tREE")
+		stmt = "SELECT * FROM std"
+		cur.execute(stmt)
+		tuples = cur.fetchall()
+		k = 3 # No. of children of a node in a Merkle Tree. Change as per your choice
+		ntuples = len(tuples)
+		if ntuples<k:
+			n = 1
+		else:
+			n = math.floor(math.log(ntuples, k))
+		h1_bits = n
+		digest_size = 4
+		for i in tuples:
+			dgst = hashlib.blake2b((i[0]+" "+i[1]).encode(), digest_size=digest_size).hexdigest()
+			dgst_int = int(dgst, 16)
+			h1[base_k(dgst_int, k)].append(" ".join(i))
+		print(h1)
+		st = "".join(map(str, range(k)))
+		mtree = {'root': Node('root')}
+		node_ids = ["".join(seq) for i in range(1, n+1) for seq in product(st, repeat=i)]
+		for i in node_ids:
+			if len(i)==1:
+				mtree[i] = Node(i, parent=mtree['root'])
+			else:
+				mtree[i] = Node(i, parent=mtree[i[:-1]])
+		for i in reversed(node_ids): # Find hash values for leaves
+			if len(i) == n:
+				leaf_hash = hashlib.sha1("".join(sorted([hashlib.sha1(j.encode()).hexdigest() for j in h1[i]])).encode()).hexdigest()
+				mtree[i].hash = leaf_hash
+				leaves[leaf_hash] = i
+			else:
+				break
+		for i in range(len(node_ids), 0, -k):
+			node = node_ids[i-1]
+			if len(node) != 1:
+				nodeid = node_ids[i-1][:-1]
+			else:
+				nodeid = 'root'
+			mtree[nodeid].hash = hashlib.sha1("".join(sorted([mtree[j].hash for j in node_ids[i-k:i]])).encode()).hexdigest()
+		makeTree = 0
+		# print(RenderTree(mtree['root']))
+	postdata = request.json
+	children = []
+	for nodeitem in postdata['data']:
+		if nodeitem in ['GOD', 'god', 'God']:
+			children = [mtree['root'].hash]
+		else:
+			children += [node.hash for node in LevelOrderIter(mtree['root']) if node.parent!=None and node.parent.hash==nodeitem]
+	if children == []:
+		# print([j for i in postdata["data"] for j in h1[leaves[i]]])
+		return jsonify({"children": [j for i in postdata["data"] for j in h1[leaves[i]]], "leaf": "1"})
+
+	return jsonify({'children': children, "leaf": "0"})
+
 if __name__ == '__main__':
 	app.secret_key = os.urandom(12)
-	pollThread.start()
+	# pollThread.start()
 	app.run(port=5001)

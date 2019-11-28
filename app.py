@@ -77,6 +77,39 @@ def poke():
 	else:
 		return jsonify({'status':'PING', 'data':response.text})
 
+@app.route('/idbi', methods=['POST'])
+def idbi():
+	url1 = 'http://localhost:5001/idbi'
+	url2 = 'http://10.129.125.52:5007/idbi'
+	try:
+		data1 = {'data': ['God']}
+		data2 = {'data': ['God']}
+		r1 = requests.post(url1, json=data1).json()
+		r2 = requests.post(url2, json=data2).json()
+		if r1['children'][0] == r2['children'][0]:
+			ret = ":)"
+		else:
+			while True:
+				# print("Hola",r1['children'], r2['children'])
+				diff1, diff2 = [], []
+				if r1['leaf']=='1' or r2['leaf']==1:
+					break 
+				for i,j in zip(r1['children'], r2['children']):
+					if i!=j:
+						diff1.append(i)
+						diff2.append(j)
+				data1['data'] = diff1
+				data2['data'] = diff2
+				r1 = requests.post(url1, json=data1).json()
+				r2 = requests.post(url2, json=data2).json()
+	except (ConnectionError, requests.exceptions.RequestException) as e:
+		return jsonify({'status':'D', 'data':''})
+	else:
+		l1 = ", ".join(list(set(r1['children']) - set(r2['children'])))
+		l2 = ", ".join(list(set(r2['children']) - set(r1['children'])))
+		ret = l1+"\n\n"+l2
+		return jsonify({'status':'VERIFY', 'data':ret})
+
 @app.route('/insert', methods=['POST'])
 def insert():
 	import Insert
