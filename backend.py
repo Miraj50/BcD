@@ -22,7 +22,7 @@ log = defaultdict(list)
 makeTree = 1 ########################################################################################
 
 def pollAndExecute():
-	global txRun, log
+	global makeTree, txRun, log
 	# print(time.time(), x)
 	tot = mc.streamInfo(api)
 	if tot == txRun:
@@ -312,6 +312,7 @@ leaves = {}
 @app.route('/idbi', methods=['POST'])
 def idbi():
 	global makeTree, mtree, h1_bits, h1, leaves
+	print("makeTree", makeTree)
 	if makeTree == 1: #Change it to 1
 		print("making Merkle tREE")
 		stmt = "SELECT * FROM std"
@@ -325,11 +326,12 @@ def idbi():
 			n = math.floor(math.log(ntuples, k))
 		h1_bits = n
 		digest_size = 4
+		h1.clear()
 		for i in tuples:
 			dgst = hashlib.blake2b((i[0]+" "+i[1]).encode(), digest_size=digest_size).hexdigest()
 			dgst_int = int(dgst, 16)
 			h1[base_k(dgst_int, k)].append(" ".join(i))
-		print(h1)
+		# print(h1)
 		st = "".join(map(str, range(k)))
 		mtree = {'root': Node('root')}
 		node_ids = ["".join(seq) for i in range(1, n+1) for seq in product(st, repeat=i)]
@@ -353,7 +355,7 @@ def idbi():
 				nodeid = 'root'
 			mtree[nodeid].hash = hashlib.sha1("".join(sorted([mtree[j].hash for j in node_ids[i-k:i]])).encode()).hexdigest()
 		makeTree = 0
-		# print(RenderTree(mtree['root']))
+		print(RenderTree(mtree['root']))
 	postdata = request.json
 	children = []
 	for nodeitem in postdata['data']:
@@ -369,5 +371,5 @@ def idbi():
 
 if __name__ == '__main__':
 	app.secret_key = os.urandom(12)
-	# pollThread.start()
+	pollThread.start()
 	app.run(port=5001)

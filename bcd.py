@@ -323,7 +323,7 @@ class BcD(tk.Tk):
 		u = tk.Label(topF, text=self.uname, font='Helvetica 10 bold', bg='lightblue')
 		u.pack(side='left', expand=False)
 		tk.Button(topF, text='POKE', bg='firebrick2', fg='white', activebackground='tomato', activeforeground='white', command=self.poke).pack(side='left', padx=100)
-		tk.Button(topF, text='VERIFY', bg='lightcoral', fg='white', activebackground='coral', activeforeground='white', command=self.idbi).pack(side='right')
+		tk.Button(topF, text='VERIFY', bg='coral', fg='white', activebackground='lightcoral', activeforeground='white', command=self.idbi).pack(side='right')
 
 		logoutButton = tk.Button(self, text='LogOut', bg='brown4', fg='white', activebackground='brown', activeforeground='white', command=self.Logout)
 		logoutButton.grid(row=1, column=1, padx=(0,10), pady=(5,5), sticky="e")

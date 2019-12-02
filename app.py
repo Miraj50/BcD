@@ -81,6 +81,7 @@ def poke():
 def idbi():
 	url1 = 'http://localhost:5001/idbi'
 	url2 = 'http://10.129.125.52:5007/idbi'
+	ret = None
 	try:
 		data1 = {'data': ['God']}
 		data2 = {'data': ['God']}
@@ -105,9 +106,13 @@ def idbi():
 	except (ConnectionError, requests.exceptions.RequestException) as e:
 		return jsonify({'status':'D', 'data':''})
 	else:
-		l1 = ", ".join(list(set(r1['children']) - set(r2['children'])))
-		l2 = ", ".join(list(set(r2['children']) - set(r1['children'])))
-		ret = l1+"\n\n"+l2
+		if ret!=':)':
+			print(r1['children'])
+			print(r2['children'])
+			l1 = ", ".join(list(set(r1['children']) - set(r2['children'])))
+			l2 = ", ".join(list(set(r2['children']) - set(r1['children'])))
+			print(l1,l2)
+			ret = l1+"\n\n"+l2
 		return jsonify({'status':'VERIFY', 'data':ret})
 
 @app.route('/insert', methods=['POST'])
